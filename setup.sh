@@ -65,6 +65,7 @@ DLLS=(
     "SmartFormat.dll"
     "SmartFormat.ZString.dll"
     "Sentry.dll"
+    "Sentry.Godot.dll"
     "Steamworks.NET.dll"
     "MonoMod.Backports.dll"
     "MonoMod.ILHelpers.dll"

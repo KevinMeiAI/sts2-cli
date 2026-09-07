@@ -26,5 +26,22 @@ for character in Ironclad Silent Defect Regent Necrobinder; do
 done
 ```
 
+## Interactive-launch dependency regression
+
+The first validation used `STS2_GAME_DIR` pointing at the Steam installation,
+which hid a missing `Sentry.Godot.dll` in `lib/`. The interactive launcher only
+searched `lib/` and failed at the game module initializer. Setup now copies this
+new dependency; the launcher reruns setup when it is missing, and protocol
+errors retain inner exception details.
+
+The game test fixture now uses only `lib/`. Additional tests launch the real
+interactive program for all five characters with `STS2_GAME_DIR` unset and
+verify automatic repair is triggered for the missing dependency. The reported
+`cli_5005` seed successfully reached Neow through the normal Chinese launcher.
+All five characters were also replayed five times using only `lib/`: 25/25
+normal game-over states. The lib-only full suite passed 69 tests; the additional
+auto-repair check passed in a targeted seven-test launcher run. Both `launch.py`
+and `python/play.py` reached Neow without a Steam fallback.
+
 The batch runner records action/state JSONL files under `logs/` (gitignored).
 Native save/load tests use temporary saves; game DLLs remain local and are not distributed.
