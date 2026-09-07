@@ -9,11 +9,18 @@
 #   ./setup.sh                    # Auto-detect Steam path
 #   ./setup.sh /path/to/game      # Manual game directory
 
-set -e
+set -eo pipefail
+
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Resolve a supplied relative game directory before changing directory.
+GAME_DIR="${1:-${STS2_GAME_DIR:-}}"
+if [ -n "$GAME_DIR" ]; then
+    GAME_DIR="$(cd "$GAME_DIR" && pwd)"
+fi
+cd "$REPO_DIR"
 
 # ── Locate game directory ──
 
-GAME_DIR="$1"
 
 if [ -z "$GAME_DIR" ]; then
     # Auto-detect based on platform
@@ -86,9 +93,17 @@ for dll in "${DLLS[@]}"; do
 done
 
 # Back up original sts2.dll
-if [ -f "lib/sts2.dll" ] && [ ! -f "lib/sts2.dll.original" ]; then
+if [ -f "lib/sts2.dll" ]; then
     cp "lib/sts2.dll" "lib/sts2.dll.original"
     echo "  ✓ Backed up sts2.dll.original"
+fi
+
+# Refresh text alongside the engine so descriptions match the installed balance.
+PCK_PATH="$(find "$GAME_DIR" "$(dirname "$GAME_DIR")" -maxdepth 2 -name '*.pck' -print -quit 2>/dev/null)"
+if [ -n "$PCK_PATH" ]; then
+    python3 scripts/extract_localization.py "$PCK_PATH"
+else
+    echo "⚠ No game PCK found; keeping existing localization tables."
 fi
 
 # ── Detect .NET SDK ──

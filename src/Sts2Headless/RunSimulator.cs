@@ -517,7 +517,7 @@ public class RunSimulator
             Log($"RunState created, players={_runState.Players?.Count}");
 
             var netService = new NetSingleplayerGameService();
-            RunManager.Instance.SetUpSavedSinglePlayer(_runState, save);
+            RunManager.Instance.SetUpSavedSingleplayer(_runState, save).GetAwaiter().GetResult();
             LocalContext.NetId = netService.NetId;
 
             CombatManager.Instance.TurnStarted += _ => _turnStarted.Set();
@@ -3074,6 +3074,12 @@ public class RunSimulator
 
         TestMode.IsOn = true;
 
+        // The current engine requires mod discovery and assembly metadata even
+        // for unmodded runs. TestMode skips filesystem/workshop mod loading.
+        MegaCrit.Sts2.Core.Modding.ModManager.Initialize(
+            new MegaCrit.Sts2.Core.Modding.ModManagerFileIo(), null, null).GetAwaiter().GetResult();
+        MegaCrit.Sts2.Core.Modding.AssemblyInfo.Init();
+
         // Install inline sync context on main thread
         SynchronizationContext.SetSynchronizationContext(_syncCtx);
 
@@ -3098,10 +3104,6 @@ public class RunSimulator
         // PrefsSave getter returns null and those paths NRE.
         try { SaveManager.Instance.InitPrefsDataForTest(); }
         catch (Exception ex) { Console.Error.WriteLine($"[WARN] SaveManager.InitPrefsDataForTest: {ex.Message}"); }
-
-        // Initialize progress data for epoch/timeline tracking
-        try { SaveManager.Instance.InitProgressData(); }
-        catch (Exception ex) { Console.Error.WriteLine($"[WARN] InitProgressData: {ex.Message}"); }
 
         // Install the Task.Yield patch but keep SuppressYield=false by default.
         // SuppressYield is toggled to true only during EndTurn to prevent boss fight deadlocks.
@@ -3138,6 +3140,21 @@ public class RunSimulator
             }
         }
         Console.Error.WriteLine($"[INFO] ModelDb: {registered} registered, {failed} failed out of {subtypes.Count}");
+
+        // Progress now resolves character models, so register ModelDb first.
+        SaveManager.Instance.InitProgressData();
+
+        // The built-in test reward selector assumes every reward is taken.
+        // Mirror leaving the reward screen after our explicit take/skip prompts
+        // so skipped cards finish the set and its event continuation can resume.
+        RewardsSet.testSelector = async set =>
+        {
+            var synchronizer = RunManager.Instance.RewardsSetSynchronizer;
+            foreach (var reward in set.Rewards)
+                await synchronizer.SelectLocalReward(reward);
+            if (!synchronizer.IsRewardsSetCompleted(set))
+                synchronizer.SkipLocalRewardsSet();
+        };
 
         // Initialize net ID serialization cache (needed for combat actions)
         try
@@ -3733,8 +3750,7 @@ public class RunSimulator
         {
             try
             {
-                await CreatureCmd.Damage(ctx, play.Target!, card.DynamicVars.Damage.BaseValue,
-                    MegaCrit.Sts2.Core.ValueProps.ValueProp.Move, card);
+                await CreatureCmd.Damage(ctx, play.Target!, card.DynamicVars.Damage, card, play);
                 await PowerCmd.Apply<WeakPower>(ctx, play.Target!, card.DynamicVars["WeakPower"].BaseValue,
                     card.Owner.Creature, card, false);
             }
