@@ -24,6 +24,15 @@ cd sts2-cli
 
 Or just run `python3 python/play.py` — it auto-detects and sets up on first run.
 
+Tested with **v0.111.0 (Steam public-beta, build 24724944)**. After updating the
+installed game in Steam, rerun `./setup.sh` to refresh the engine DLLs, patches,
+and official English/Chinese localization, then rebuild. Other game versions
+may require adapter changes.
+
+For a compatibility check, run `python3 python/play_full_run.py 5 Ironclad`
+(repeat for Silent, Defect, Regent, and Necrobinder). A completed run reaches
+victory or defeat; crashes, stalls, and timeouts return a nonzero exit code.
+
 ## Play
 
 ```bash
@@ -129,6 +138,14 @@ cd sts2-cli
 ```
 
 或者直接运行 `python3 python/play.py`，首次会自动完成 setup。
+
+已验证 **v0.111.0（Steam public-beta，构建 24724944）**。通过 Steam 更新游戏后，
+请重新运行 `./setup.sh`，同步游戏 DLL、补丁和官方中英文文本并重新编译。
+其他游戏版本可能需要修改适配代码。
+
+可运行 `python3 python/play_full_run.py 5 Ironclad` 检查兼容性，并依次替换为
+Silent、Defect、Regent、Necrobinder。“完成”指正常胜利或死亡；崩溃、卡住和超时
+会返回非零退出码。
 
 ## 玩
 

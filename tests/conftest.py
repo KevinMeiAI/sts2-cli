@@ -18,10 +18,9 @@ class Game:
 
     def __init__(self):
         env = os.environ.copy()
-        env.setdefault("STS2_GAME_DIR",
-                       os.path.expanduser("~/Library/Application Support/Steam/steamapps/common/"
-                                          "Slay the Spire 2/SlayTheSpire2.app/Contents/Resources/"
-                                          "data_sts2_macos_arm64"))
+        # Match the interactive launcher's default: resolve dependencies from lib,
+        # never silently borrow missing assemblies from the Steam installation.
+        env["STS2_GAME_DIR"] = os.path.join(os.path.dirname(os.path.dirname(PROJECT)), "..", "lib")
         self.proc = subprocess.Popen(
             [DOTNET, "run", "--no-build", "--project", PROJECT],
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,

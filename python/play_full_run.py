@@ -20,6 +20,8 @@ import subprocess
 import sys
 import random
 import os
+import queue
+import threading
 from game_log import GameLogger
 
 VALID_CHARACTERS = ["Ironclad", "Silent", "Defect", "Regent", "Necrobinder"]
@@ -41,27 +43,39 @@ PROJECT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 
 def play_run(seed: str, character: str = "Ironclad", verbose: bool = True, log: bool = True):
     """Play a complete run and return the result."""
+    rng = random.Random(seed)
     logger = GameLogger(character, seed, enabled=log)
     proc = subprocess.Popen(
         [DOTNET, "run", "--no-build", "--project", PROJECT],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE if not verbose else None,
+        stderr=subprocess.DEVNULL if not verbose else None,
         text=True,
         bufsize=1,
     )
 
+    responses = queue.Queue()
+
+    def collect_output():
+        for line in proc.stdout:
+            responses.put(line)
+        responses.put(None)
+
+    threading.Thread(target=collect_output, daemon=True).start()
+
     def read_json_line() -> dict:
-        """Read a line from stdout, skipping non-JSON lines (build warnings etc.)"""
+        """Bound response waits so a deadlocked engine fails the regression."""
         while True:
-            resp_line = proc.stdout.readline().strip()
-            if not resp_line:
+            try:
+                line = responses.get(timeout=30)
+            except queue.Empty:
+                raise TimeoutError("No simulator response within 30 seconds") from None
+            if line is None:
                 raise RuntimeError("No response from simulator (EOF)")
-            if resp_line.startswith("{"):
-                return json.loads(resp_line)
-            # Skip non-JSON lines (build warnings, etc.)
+            if line.startswith("{"):
+                return json.loads(line)
             if verbose:
-                print(f"  [skip] {resp_line[:120]}")
+                print(f"  [skip] {line.strip()[:120]}")
 
     def send(cmd: dict) -> dict:
         line = json.dumps(cmd)
@@ -101,7 +115,7 @@ def play_run(seed: str, character: str = "Ironclad", verbose: bool = True, log: 
         state = send({"cmd": "start_run", "character": character, "seed": seed})
 
         step = 0
-        max_steps = 500  # Safety limit
+        max_steps = 2000  # Safety limit
         stuck_count = 0
         last_state_key = None
 
@@ -110,7 +124,7 @@ def play_run(seed: str, character: str = "Ironclad", verbose: bool = True, log: 
 
             if state.get("type") == "error":
                 print(f"  ERROR: {state.get('message', 'unknown')}")
-                break
+                raise RuntimeError(state.get("message", "Simulator error"))
 
             decision = state.get("decision", "")
 
@@ -123,7 +137,7 @@ def play_run(seed: str, character: str = "Ironclad", verbose: bool = True, log: 
                 stuck_count += 1
                 if stuck_count > 20:
                     print(f"  STUCK after {step} steps, forcing quit")
-                    return {"victory": False, "seed": seed, "steps": step,
+                    return {"victory": False, "seed": seed, "steps": step, "error": "stuck",
                             "act": state.get("act"), "floor": state.get("floor"),
                             "hp": state.get("player", {}).get("hp"),
                             "max_hp": state.get("player", {}).get("max_hp")}
@@ -141,6 +155,7 @@ def play_run(seed: str, character: str = "Ironclad", verbose: bool = True, log: 
                       f"Deck: {player.get('deck_size')} cards)")
                 return {
                     "victory": victory,
+                    "completed": True,
                     "seed": seed,
                     "steps": step,
                     "act": state.get("act"),
@@ -155,7 +170,7 @@ def play_run(seed: str, character: str = "Ironclad", verbose: bool = True, log: 
                     print("  No map choices available!")
                     break
                 # Random selection
-                choice = random.choice(choices)
+                choice = rng.choice(choices)
                 state = send({
                     "cmd": "action",
                     "action": "select_map_node",
@@ -193,9 +208,6 @@ def play_run(seed: str, character: str = "Ironclad", verbose: bool = True, log: 
                             break
                         import time
                         time.sleep(0.5)
-                    if state.get("type") == "error":
-                        # Try proceeding instead
-                        state = send({"cmd": "action", "action": "proceed"})
 
             elif decision == "event_choice":
                 options = state.get("options", [])
@@ -207,8 +219,6 @@ def play_run(seed: str, character: str = "Ironclad", verbose: bool = True, log: 
                         "action": "choose_option",
                         "args": {"option_index": choice["index"]}
                     })
-                    if state and state.get("type") == "error":
-                        state = send({"cmd": "action", "action": "leave_room"})
                 else:
                     state = send({"cmd": "action", "action": "leave_room"})
 
@@ -224,8 +234,6 @@ def play_run(seed: str, character: str = "Ironclad", verbose: bool = True, log: 
                         "action": "choose_option",
                         "args": {"option_index": choice["index"]}
                     })
-                    if state and state.get("type") == "error":
-                        state = send({"cmd": "action", "action": "leave_room"})
                 else:
                     state = send({"cmd": "action", "action": "leave_room"})
 
@@ -261,8 +269,7 @@ def play_run(seed: str, character: str = "Ironclad", verbose: bool = True, log: 
                 state = send({"cmd": "action", "action": "proceed"})
 
             else:
-                state = send({"cmd": "action", "action": "proceed"})
-                state = send({"cmd": "action", "action": "proceed"})
+                raise RuntimeError(f"Unsupported decision: {decision!r}")
 
         print(f"  Reached max steps ({max_steps})")
         return {"victory": False, "seed": seed, "steps": step, "timeout": True}
@@ -320,14 +327,15 @@ def main():
     print("SUMMARY")
     print("=" * 60)
     wins = sum(1 for r in results if r and r.get("victory"))
-    completed = sum(1 for r in results if r and not r.get("timeout"))
+    completed = sum(1 for r in results if r and r.get("completed"))
     for i, r in enumerate(results):
         if r:
-            status = "WIN" if r.get("victory") else ("TIMEOUT" if r.get("timeout") else "LOSS")
+            status = "WIN" if r.get("victory") else ("LOSS" if r.get("completed") else "ERROR")
             print(f"  Run {i+1}: {status} | seed={r.get('seed')} steps={r.get('steps')} "
                   f"act={r.get('act')} floor={r.get('floor')}")
     print(f"\nWins: {wins}/{num_runs}, Completed: {completed}/{num_runs}")
+    return 0 if completed == num_runs else 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

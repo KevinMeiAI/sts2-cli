@@ -92,7 +92,7 @@ def _copy_dlls(game_dir):
     os.makedirs(LIB_DIR, exist_ok=True)
     dlls = [
         "sts2.dll", "SmartFormat.dll", "SmartFormat.ZString.dll",
-        "Sentry.dll", "Steamworks.NET.dll", "MonoMod.Backports.dll",
+        "Sentry.dll", "Sentry.Godot.dll", "Steamworks.NET.dll", "MonoMod.Backports.dll",
         "MonoMod.ILHelpers.dll", "0Harmony.dll", "System.IO.Hashing.dll",
     ]
     import shutil
@@ -149,8 +149,8 @@ def ensure_setup():
 
     # Check lib/sts2.dll exists
     sts2_dll = os.path.join(LIB_DIR, "sts2.dll")
-    if not os.path.isfile(sts2_dll):
-        print("📦 Game DLLs not found. Running first-time setup...")
+    if not os.path.isfile(sts2_dll) or not os.path.isfile(os.path.join(LIB_DIR, "Sentry.Godot.dll")):
+        print(t("📦 Game DLLs missing. Running setup...", "📦 缺少游戏 DLL，正在运行安装程序……"))
         game_dir = _find_game_dir()
         if not game_dir:
             print("❌ Could not find Slay the Spire 2 installation.")
@@ -158,7 +158,8 @@ def ensure_setup():
             print("   Or run: ./setup.sh /path/to/game/data")
             sys.exit(1)
         print(f"  Found game at: {game_dir}")
-        _copy_dlls(game_dir)
+        subprocess.run(["bash", os.path.join(ROOT, "setup.sh"), game_dir],
+                       cwd=ROOT, check=True)
         if not os.path.isfile(sts2_dll):
             print("❌ Failed to copy sts2.dll")
             sys.exit(1)
