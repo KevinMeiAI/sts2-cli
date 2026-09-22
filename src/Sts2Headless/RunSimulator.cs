@@ -1607,6 +1607,7 @@ public class RunSimulator
                         // Run on thread pool so GetSelectedCards/GetSelectedCardReward can block
                         var chosenOption = options[optionIndex];
                         var task = Task.Run(() => chosenOption.Chosen());
+                        _pendingEventChoice = task;
                         for (int i = 0; i < 100; i++)
                         {
                             _syncCtx.Pump();
@@ -1725,6 +1726,32 @@ public class RunSimulator
     #region Decision Point Detection
 
     private Task<bool>? _pendingShopPurchase;
+    private Task? _pendingEventChoice;
+
+    private Dictionary<string, object?>? SettleEventChoice()
+    {
+        // Event choices run outside ActionExecutor and can pause for a selection.
+        // Resolving that selection must finish the owning task (or yield to its next
+        // decision) before we expose state or accept the next command. Sleeping for
+        // a fixed interval makes rapid clients and checkpoint replay nondeterministic.
+        var task = _pendingEventChoice;
+        if (task == null) return null;
+        var deadline = Environment.TickCount64 + 5000;
+        while (!task.IsCompleted)
+        {
+            _syncCtx.Pump();
+            if (_cardSelector.HasPending || _cardSelector.HasPendingReward || _pendingBundles != null)
+                return null;
+            if (_runState?.CurrentRoom is CombatRoom && CombatManager.Instance.IsInProgress)
+                return null;
+            if (Environment.TickCount64 >= deadline)
+                return Error("Event choice is still pending; query get_state");
+            Thread.Sleep(1);
+        }
+        _pendingEventChoice = null;
+        try { task.GetAwaiter().GetResult(); return null; }
+        catch (Exception ex) { return ErrorWithTrace("Event choice failed", ex); }
+    }
 
     private Dictionary<string, object?>? ObserveShopPurchase()
     {
@@ -1737,6 +1764,8 @@ public class RunSimulator
 
     private Dictionary<string, object?> DetectDecisionPoint()
     {
+        var eventError = SettleEventChoice();
+        if (eventError != null) return eventError;
         var purchaseError = ObserveShopPurchase();
         if (purchaseError != null) return purchaseError;
         if (_runState == null)
@@ -2111,6 +2140,10 @@ public class RunSimulator
                         // Hit count: explicit `repeat` var if present, else for X-cost attacks
                         // the hit count is the current X (= available energy), e.g. Whirlwind (#82).
                         int repeat = tstats.TryGetValue("repeat", out var rv) && rv is int ri && ri > 0 ? ri : 1;
+                        // Tear Asunder's Repeat is the base count; CalculatedHits
+                        // includes the number of HP-loss events in this combat.
+                        if (tstats.TryGetValue("calculatedhits", out var hits) && hits is int hitCount && hitCount > 0)
+                            repeat = hitCount;
                         if (repeat == 1 && c.EnergyCost?.CostsX == true && pcs != null)
                             repeat = pcs.Energy;
                         // Dismantle hits twice when the target is Vulnerable (#78). The doubled

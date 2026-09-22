@@ -138,3 +138,56 @@ def test_replay_divergence_is_reported(tmp_path):
         assert 'diverged' in result['message']
     finally:
         game.close()
+
+
+def test_neow_selection_settles_before_immediate_save(tmp_path):
+    game = Game()
+    try:
+        game.send({'cmd': 'start_run', 'character': 'Ironclad', 'ascension': 10,
+                   'seed': '5LBKZHX72A', 'lang': 'en'})
+        state = game.act('choose_option', option_index=1)
+        assert state['decision'] == 'card_select'
+        state = game.act('select_cards', indices='0')
+        assert state['decision'] == 'map_select'
+        assert state['player']['deck_size'] == 12
+        assert any(c['name'] == 'Ultimate Strike' for c in state['player']['deck'])
+        assert game.send({'cmd': 'get_state'}) == state
+        restored, _ = save_and_restore(game, state, tmp_path)
+        restored.close()
+    finally:
+        game.close()
+
+
+def test_recorded_a10_act_preserves_result_and_calculated_hit_count(tmp_path):
+    commands = json.loads((Path(__file__).parent / 'fixtures/ironclad_a10_act1_commands.json').read_text())
+    game = Game()
+    try:
+        for step, command in enumerate(commands, 1):
+            before = state if step > 1 else None
+            state = game.send(command)
+            assert state.get('type') != 'error', (step, state)
+            if step in (3, 24, 138):
+                assert state['decision'] == 'map_select', (step, state)
+            if step == 161:
+                assert state['decision'] == 'combat_play' and state['round'] == 6
+                path = tmp_path / 'a10-combat.save'
+                assert game.send({'cmd': 'write_continue_save', 'path': str(path)})['success']
+                restored = Game()
+                try:
+                    assert restored.send({'cmd': 'load_save', 'path': str(path)}) == state
+                finally:
+                    restored.close()
+            if step in (147, 162):
+                card = before['hand'][command['args']['card_index']]
+                assert card['name'] == 'Tear Asunder'
+                preview = card['damage_by_target'][0]
+                assert preview['repeat'] == card['stats']['calculatedhits'] == (2 if step == 147 else 6)
+                assert preview['total_damage'] == (20 if step == 147 else 42)
+                assert before['enemies'][0]['hp'] - state['enemies'][0]['hp'] == (2 if step == 147 else 42)
+        assert state['decision'] == 'game_over' and state['victory'] is False
+        assert (state['act'], state['floor'], state['player']['hp']) == (1, 17, 0)
+        assert before['round'] == 10 and before['enemies'][0]['hp'] == 22
+        restored, _ = save_and_restore(game, state, tmp_path)
+        restored.close()
+    finally:
+        game.close()
