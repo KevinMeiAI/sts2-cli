@@ -11,6 +11,7 @@ internal sealed class CommandSession
     private readonly string _engineHash;
     private RunSimulator _sim = new();
     private readonly List<JsonElement> _commands = new();
+    private bool _restoreFailed;
     private static readonly HashSet<string> RecordedCommands = new()
         { "start_run", "load_save", "action", "set_player", "set_draw_order", "enter_room" };
 
@@ -23,6 +24,10 @@ internal sealed class CommandSession
     public Dictionary<string, object?>? Execute(JsonElement command)
     {
         var kind = command.GetProperty("cmd").GetString();
+        // A divergent replay can leave engine singleton tasks alive. A fresh
+        // simulator in the same process is insufficient to reset those tasks.
+        if (_restoreFailed && kind != "quit")
+            return Error("A previous checkpoint restore failed; restart the CLI process before loading another checkpoint");
         if (kind == "write_continue_save" || kind == "quit")
         {
             var path = command.TryGetProperty("path", out var p) ? p.GetString() : null;
@@ -133,6 +138,7 @@ internal sealed class CommandSession
         }
         catch (Exception ex)
         {
+            _restoreFailed = true;
             _sim.CleanUp();
             _sim = new RunSimulator();
             return Error($"Checkpoint restore failed: {ex.Message}");

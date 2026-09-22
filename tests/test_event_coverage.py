@@ -77,16 +77,6 @@ def test_necrobinder_a10_boss_victory_and_checkpoint(game, tmp_path):
     restored.close()
 
 
-def test_crystal_sphere_reports_unsupported_before_charging_or_cursing(game):
-    game.skip_neow(game.start(seed='sphere-unsupported', ascension=10))
-    game.set_player(gold=500)
-    state = game.enter_room('event', event='CRYSTAL_SPHERE')
-    assert all(o['is_supported'] is False for o in state['options'])
-    for index in range(2):
-        error = game.act('choose_option', option_index=index)
-        assert error['code'] == 'unsupported_interaction'
-        assert error['state_unchanged'] is True
-        assert game.send({'cmd': 'get_state'}) == state
 
 
 @pytest.mark.parametrize('branch,kind,result_name', [(0, 'Strike', 'Ultimate Strike'), (1, 'Defend', 'Ultimate Defend')])

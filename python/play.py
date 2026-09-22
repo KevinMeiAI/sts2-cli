@@ -1800,6 +1800,22 @@ def play(character="Ironclad", seed=None, auto=False, ascension=0, log=True,
                     state = send({"cmd": "action", "action": "select_card_reward",
                                  "args": {"card_index": int(choice)}})
 
+            elif dec == "crystal_sphere":
+                print(f"\n{t('Crystal Sphere', '水晶球')} — {state['divinations_remaining']} {t('divinations left', '次占卜剩余')}")
+                width = state['width']
+                cells = [cell for row in state['grid'] for cell in row]
+                hidden = {str(cell['y'] * width + cell['x']): cell for cell in cells if cell['hidden']}
+                for row in state['grid']:
+                    print(' '.join(f"{cell['y'] * width + cell['x']:3}" if cell['hidden'] else '  *' if cell.get('item_type') else '  .' for cell in row))
+                for cell in cells:
+                    if not cell['hidden'] and cell.get('item_type'):
+                        print(f"  ({cell['x']},{cell['y']}): {cell['item_type']}")
+                choice = next(iter(hidden)) if auto else get_input(t('Reveal cell [number]', '揭开格子 [编号]'), set(hidden), state=state)
+                tool = 'b' if auto else get_input(t('(b)ig 3x3 or (s)mall 1x1', '(b)大占卜 3x3 或 (s)小占卜 1x1'), {'b', 's'}, state=state)
+                cell = hidden[choice]
+                state = send({'cmd': 'action', 'action': 'crystal_sphere_reveal',
+                              'args': {'x': cell['x'], 'y': cell['y'], 'tool': 'big' if tool == 'b' else 'small'}})
+
             elif dec == "bundle_select":
                 print(f"\n{'─' * 60}")
                 ctx = state.get("context", {})

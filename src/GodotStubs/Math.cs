@@ -49,6 +49,8 @@ public struct Vector2I
     public int Y;
     public Vector2I(int x, int y) { X = x; Y = y; }
     public static Vector2I Zero { get; } = new(0, 0);
+    public static Vector2I One { get; } = new(1, 1);
+    public static Vector2I operator *(Vector2I v, int scale) => new(v.X * scale, v.Y * scale);
     public static implicit operator Vector2(Vector2I v) => new(v.X, v.Y);
 }
 

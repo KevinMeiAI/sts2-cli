@@ -123,6 +123,10 @@ such as Block and Slippery. It is not a promise of how much HP the target will l
 
 ## A10 event coverage and known limits
 
+See [Act 2 continuation and fixes](docs/act2-validation.md) for the same saved
+Ironclad A0 and Necrobinder A10 runs continued through their second boss, including
+Crystal Sphere support and combat/reward compatibility fixes.
+
 See [Silent / Necrobinder A10 validation](docs/a10-event-coverage.md) for manually
 played first acts, the event-branch survey, repairs and remaining limitations.
 Power summaries now expose live `vars` and `description_is_template`. Shop relics

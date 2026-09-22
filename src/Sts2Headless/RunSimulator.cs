@@ -204,7 +204,7 @@ internal class LocLookup
 /// through map navigation, combat, events, rest sites, shops, and act transitions.
 /// Drives the engine forward until it hits a "decision point" requiring external input.
 /// </summary>
-public class RunSimulator
+public partial class RunSimulator
 {
     private static int? _expectedSaveSchemaVersion;
     private static bool _expectedSaveSchemaVersionReady;
@@ -799,6 +799,9 @@ public class RunSimulator
 
             var player = _runState.Players[0];
 
+            if (HasPendingCrystalSphere && action != "crystal_sphere_reveal")
+                return Error("Resolve the Crystal Sphere grid before leaving this event");
+
             switch (action)
             {
                 case "select_map_node":
@@ -821,6 +824,8 @@ public class RunSimulator
                     return DoBuyPotion(player, args);
                 case "remove_card":
                     return DoRemoveCard(player);
+                case "crystal_sphere_reveal":
+                    return DoCrystalSphereReveal(args);
                 case "select_bundle":
                     return DoSelectBundle(player, args);
                 case "select_cards":
@@ -851,6 +856,14 @@ public class RunSimulator
     {
         if (args == null || !args.ContainsKey("col") || !args.ContainsKey("row"))
             return Error("select_map_node requires 'col' and 'row'");
+
+        var startPoint = _runState?.Map?.StartingMapPoint;
+        if (_runState?.CurrentMapCoord == null && startPoint?.PointType == MapPointType.Ancient &&
+            (Convert.ToInt32(args["col"]) != startPoint.coord.col || Convert.ToInt32(args["row"]) != startPoint.coord.row))
+            return Error("Visit the starting Ancient before choosing the first normal room");
+        if (startPoint?.PointType == MapPointType.Ancient && _runState?.CurrentMapCoord != null &&
+            Convert.ToInt32(args["col"]) == startPoint.coord.col && Convert.ToInt32(args["row"]) == startPoint.coord.row)
+            return Error("The starting Ancient has already been visited");
 
         // Reset tracking for new room
         _rewardsProcessed = false;
@@ -973,7 +986,7 @@ public class RunSimulator
         // A pending card / card-reward / bundle selection is an unresolved prompt; ending
         // the turn here would silently mutate combat instead. Surface the prompt unchanged
         // and let the caller resolve it first (#61).
-        if (_cardSelector.HasPending || _cardSelector.HasPendingReward || _pendingBundles != null)
+        if (_cardSelector.HasPending || _cardSelector.HasPendingReward || _pendingBundles != null || HasPendingCrystalSphere)
         {
             Log("end_turn ignored: a card selection is pending");
             return DetectDecisionPoint();
@@ -1012,7 +1025,7 @@ public class RunSimulator
         {
             PlayerCmd.EndTurn(player, canBackOut: false);
             _syncCtx.Pump();
-            if (_cardSelector.HasPending || _cardSelector.HasPendingReward || _pendingBundles != null)
+            if (_cardSelector.HasPending || _cardSelector.HasPendingReward || _pendingBundles != null || HasPendingCrystalSphere)
                 return DetectDecisionPoint();
 
             // Fallback: if turn didn't complete synchronously, keep pumping with SuppressYield on
@@ -1021,7 +1034,7 @@ public class RunSimulator
                 for (int i = 0; i < 50; i++)
                 {
                     _syncCtx.Pump();
-                    if (_cardSelector.HasPending || _cardSelector.HasPendingReward || _pendingBundles != null)
+                    if (_cardSelector.HasPending || _cardSelector.HasPendingReward || _pendingBundles != null || HasPendingCrystalSphere)
                         return DetectDecisionPoint();
                     if (_turnStarted.IsSet || _combatEnded.IsSet) break;
                     if (!CombatManager.Instance.IsInProgress || player.Creature.IsDead) break;
@@ -1274,7 +1287,7 @@ public class RunSimulator
                 if (task.IsCompleted) break;
                 Thread.Sleep(10);
             }
-            if (_cardSelector.HasPending || _cardSelector.HasPendingReward || _pendingBundles != null)
+            if (_cardSelector.HasPending || _cardSelector.HasPendingReward || _pendingBundles != null || HasPendingCrystalSphere)
             {
                 Log($"Buy relic {purchasedName}: yielded for pending selection");
                 return DetectDecisionPoint();
@@ -1617,11 +1630,11 @@ public class RunSimulator
                         {
                             _syncCtx.Pump();
                             if (_cardSelector.HasPending || _cardSelector.HasPendingReward) break;
-                            if (_pendingBundles != null) break;
+                            if (_pendingBundles != null || HasPendingCrystalSphere) break;
                             if (task.IsCompleted) break;
                             Thread.Sleep(10);
                         }
-                        if (_cardSelector.HasPending || _cardSelector.HasPendingReward || _pendingBundles != null)
+                        if (_cardSelector.HasPending || _cardSelector.HasPendingReward || _pendingBundles != null || HasPendingCrystalSphere)
                         {
                             WaitForActionExecutor();
                             return DetectDecisionPoint();
@@ -1646,8 +1659,6 @@ public class RunSimulator
 
     private static string? UnsupportedEventOption(EventModel model, EventOption option)
     {
-        if (model is MegaCrit.Sts2.Core.Models.Events.CrystalSphere)
-            return "Crystal Sphere requires a grid minigame interface that the CLI does not implement yet. No payment or curse was applied.";
         if (model is MegaCrit.Sts2.Core.Models.Events.Trial && option.TextKey?.EndsWith(".DOUBLE_DOWN") == true)
             return "Trial's abandon-run confirmation is not implemented by the CLI. Choose Accept to continue the trial, or save and quit.";
         return null;
@@ -1677,42 +1688,14 @@ public class RunSimulator
         return DetectDecisionPoint();
     }
 
-    /// <summary>
-    /// Headless mode skips Godot transition callbacks that normally trigger between-act healing
-    /// (AncientEventModel.BeforeEventStarted). Replicates the original sts2.dll formula:
-    ///   healAmount = MaxHp - CurrentHp  (i.e. heal to full)
-    ///   if Ascension >= 2: healAmount *= 0.8
-    /// No-op if the engine already healed (missingHp &lt;= 0), so this is safe alongside any
-    /// future engine path that does fire the callback.
-    /// Adapted from PR #83 commit cf75bec by @tianyumyum.
-    /// </summary>
-    private void HealBetweenActs()
-    {
-        if (_runState == null) return;
-        var player = _runState.Players[0];
-        if (player.Creature == null) return;
-
-        var currentHp = player.Creature.CurrentHp;
-        var maxHp = player.Creature.MaxHp;
-        var missingHp = maxHp - currentHp;
-        if (missingHp <= 0) return;
-
-        decimal healAmount = missingHp;
-        if (RunManager.Instance.HasAscension((AscensionLevel)2))
-            healAmount *= 0.8m;
-
-        var newHp = currentHp + (int)Math.Ceiling(healAmount);
-        if (newHp > maxHp) newHp = maxHp;
-        SetField(player.Creature, "_currentHp", newHp);
-        Log($"Between-act heal: {currentHp} → {newHp} (missing={missingHp}, ascension2+={RunManager.Instance.HasAscension((AscensionLevel)2)})");
-    }
-
     private Dictionary<string, object?> DoProceed(Player player)
     {
         Log("Proceeding");
 
         // Check if we need to move to next act (boss defeated)
         var room = _runState?.CurrentRoom;
+        if (room is CombatRoom unfinished && !unfinished.IsPreFinished)
+            return Error("Combat has not completed; cannot proceed");
         if (room is CombatRoom combatRoom && combatRoom.RoomType == RoomType.Boss)
         {
             if (combatRoom.IsPreFinished || !CombatManager.Instance.IsInProgress)
@@ -1725,7 +1708,8 @@ public class RunSimulator
                 }
                 RunManager.Instance.EnterNextAct().GetAwaiter().GetResult();
                 WaitForActionExecutor();
-                HealBetweenActs();
+                // AncientEventModel.BeforeEventStarted performs the native act heal.
+                // Do not heal here as well: A2+ partial healing is not idempotent.
                 return DetectDecisionPoint();
             }
         }
@@ -1754,7 +1738,7 @@ public class RunSimulator
         while (!task.IsCompleted)
         {
             _syncCtx.Pump();
-            if (_cardSelector.HasPending || _cardSelector.HasPendingReward || _pendingBundles != null)
+            if (_cardSelector.HasPending || _cardSelector.HasPendingReward || _pendingBundles != null || HasPendingCrystalSphere)
                 return null;
             if (_runState?.CurrentRoom is CombatRoom && CombatManager.Instance.IsInProgress)
                 return null;
@@ -1778,6 +1762,8 @@ public class RunSimulator
 
     private Dictionary<string, object?> DetectDecisionPoint()
     {
+        var crystalError = SettleCrystalReveal();
+        if (crystalError != null) return crystalError;
         var eventError = SettleEventChoice();
         if (eventError != null) return eventError;
         var purchaseError = ObserveShopPurchase();
@@ -1792,6 +1778,8 @@ public class RunSimulator
         {
             return GameOverState(false);
         }
+
+        if (HasPendingCrystalSphere) return CrystalSphereState();
 
         // Check if there's a pending bundle selection (Scroll Boxes: pick 1 of N packs)
         if (_pendingBundles != null && _pendingBundleTcs != null && !_pendingBundleTcs.Task.IsCompleted)
@@ -2063,8 +2051,9 @@ public class RunSimulator
                     ["type"] = startPoint.PointType.ToString(),
                 }
             };
-            // Add all children of start point as well since we can travel to them
-            if (startPoint.Children != null)
+            // Ancients must be visited before the first normal room; this is also
+            // where the engine performs between-act healing.
+            if (startPoint.PointType != MapPointType.Ancient && startPoint.Children != null)
             {
                 foreach (var child in startPoint.Children)
                 {
@@ -2154,15 +2143,16 @@ public class RunSimulator
                             tstats[dv.Name.ToLowerInvariant()] = (int)dv.PreviewValue;
 
                         // Per-hit damage = calculateddamage (override cards) or damage.
-                        int? perHit = tstats.TryGetValue("calculateddamage", out var cdv) && cdv is int cdi && cdi > 0
+                        int? perHit = tstats.TryGetValue("calculateddamage", out var cdv) && cdv is int cdi && cdi >= 0
                             ? cdi
-                            : (tstats.TryGetValue("damage", out var dv2) && dv2 is int di ? di : (int?)null);
+                            : (tstats.TryGetValue("damage", out var dv2) && dv2 is int di ? di
+                                : (tstats.TryGetValue("ostydamage", out var odv) && odv is int odi ? odi : (int?)null));
                         // Hit count: explicit `repeat` var if present, else for X-cost attacks
                         // the hit count is the current X (= available energy), e.g. Whirlwind (#82).
                         int repeat = tstats.TryGetValue("repeat", out var rv) && rv is int ri && ri > 0 ? ri : 1;
                         // Tear Asunder's Repeat is the base count; CalculatedHits
                         // includes the number of HP-loss events in this combat.
-                        if (tstats.TryGetValue("calculatedhits", out var hits) && hits is int hitCount && hitCount > 0)
+                        if (tstats.TryGetValue("calculatedhits", out var hits) && hits is int hitCount && hitCount >= 0)
                             repeat = hitCount;
                         if (repeat == 1 && c.EnergyCost?.CostsX == true && pcs != null)
                             repeat = pcs.Energy;
@@ -2173,8 +2163,13 @@ public class RunSimulator
                         if (repeat == 1 && c.Id.Entry == "DISMANTLE" && tgt.Powers != null
                             && tgt.Powers.Any(p => p?.Id.Entry == "VULNERABLE_POWER"))
                             repeat = 2;
-                        // Twin Strike's fixed hit count is in OnPlay, not a DynamicVar.
-                        if (c.Id.Entry == "TWIN_STRIKE") repeat = 2;
+                        // These fixed hit counts live in OnPlay, not a DynamicVar.
+                        if (c.Id.Entry is "TWIN_STRIKE" or "DAGGER_SPRAY") repeat = 2;
+                        // Spite's Repeat is conditional; use the same native history
+                        // predicate as OnPlay instead of assuming its maximum count.
+                        if (c.Id.Entry == "SPITE" && !(bool)AccessTools.Method(c.GetType(), "LostHpThisTurn")
+                                .Invoke(null, new object[] { c.Owner.Creature })!)
+                            repeat = 1;
 
                         var row = new Dictionary<string, object?>
                         {
@@ -2371,6 +2366,14 @@ public class RunSimulator
         Log($"Post-combat: RoomType={combatRoom.RoomType}, IsPreFinished={combatRoom.IsPreFinished}");
         _syncCtx.Pump();
 
+        // IsInProgress is also false when startup fails. Require native completion
+        // before granting rewards; otherwise a swallowed init error becomes a win.
+        if (player.Creature.IsDead) return GameOverState(false);
+        if (!combatRoom.IsPreFinished)
+            return new() { ["type"] = "error", ["code"] = "combat_not_completed",
+                ["message"] = "Combat did not complete. Check the engine log for a startup or transition error; no rewards were granted.",
+                ["context"] = RunContext() };
+
         // Generate rewards manually instead of using TestMode auto-accept
         if (_pendingRewards == null && !_rewardsProcessed)
         {
@@ -2389,7 +2392,8 @@ public class RunSimulator
                 foreach (var reward in rewards)
                 {
                     if (reward is GoldReward || reward is MegaCrit.Sts2.Core.Rewards.RelicReward
-                        || reward is MegaCrit.Sts2.Core.Rewards.PotionReward)
+                        || reward is MegaCrit.Sts2.Core.Rewards.PotionReward
+                        || reward is MegaCrit.Sts2.Core.Rewards.SpecialCardReward)
                     {
                         try { reward.SelectUnsynchronized().GetAwaiter().GetResult(); _syncCtx.Pump(); }
                         catch (Exception ex) { Log($"Auto-collect reward: {ex.Message}"); }
@@ -2434,7 +2438,8 @@ public class RunSimulator
                 RunManager.Instance.EnterNextAct().GetAwaiter().GetResult();
                 _syncCtx.Pump();
                 WaitForActionExecutor();
-                HealBetweenActs();
+                // AncientEventModel.BeforeEventStarted performs the native act heal.
+                // Do not heal here as well: A2+ partial healing is not idempotent.
             }
             catch (Exception ex) { Log($"EnterNextAct: {ex.Message}"); }
             return DetectDecisionPoint();
@@ -2716,6 +2721,13 @@ public class RunSimulator
             ["options"] = optionList,
             ["player"] = PlayerSummary(player),
         };
+    }
+
+    private static string BossName(string encounterId, string monsterKey)
+    {
+        var name = _loc.Monster(monsterKey);
+        if (name != monsterKey + ".name") return name;
+        return _loc.Bilingual("encounters", encounterId + ".title");
     }
 
     private static string CreatureName(Creature? creature)
@@ -3144,7 +3156,7 @@ public class RunSimulator
                 ctx["boss"] = new Dictionary<string, object?>
                 {
                     ["id"] = bossIdEntry,
-                    ["name"] = _loc.Monster(monsterKey),
+                    ["name"] = BossName(bossIdEntry, monsterKey),
                 };
             }
         }
@@ -3208,6 +3220,8 @@ public class RunSimulator
         PatchTalkCmd();
         PatchDenseVegetationRest();
         PatchEventCosmetics();
+        PatchCrystalSphereScreen();
+        PatchKaiserCrabCosmetics();
 
         // Initialize localization system (needed for events, cards, etc.)
         InitLocManager();
@@ -4058,7 +4072,7 @@ public class RunSimulator
                 var monsterKey = bossIdEntry.EndsWith("_BOSS") ? bossIdEntry[..^5] : bossIdEntry;
                 if (monsterKey == "THE_KIN") monsterKey = "KIN_PRIEST";
                 bossNode["id"] = bossIdEntry;
-                bossNode["name"] = _loc.Monster(monsterKey);
+                bossNode["name"] = BossName(bossIdEntry, monsterKey);
             }
         }
         catch { }

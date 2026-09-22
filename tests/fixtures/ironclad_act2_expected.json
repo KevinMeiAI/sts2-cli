@@ -1,0 +1,819 @@
+{
+  "type": "decision",
+  "decision": "card_reward",
+  "context": {
+    "act": 2,
+    "act_name": "Hive",
+    "floor": 16,
+    "room_type": "Boss",
+    "boss": {
+      "id": "KAISER_CRAB_BOSS",
+      "name": "Kaiser Crab"
+    }
+  },
+  "cards": [
+    {
+      "index": 0,
+      "id": "CARD.PYRE",
+      "name": "Pyre",
+      "cost": 2,
+      "type": "Power",
+      "rarity": "Rare",
+      "description": "Gain {Energy:energyIcons()} at the start of each turn.",
+      "stats": {
+        "energy": 1
+      },
+      "keywords": null,
+      "after_upgrade": {
+        "cost": 2,
+        "stats": {
+          "energy": 2
+        },
+        "description": "Gain {Energy:energyIcons()} at the start of each turn.",
+        "added_keywords": null,
+        "removed_keywords": null
+      }
+    },
+    {
+      "index": 1,
+      "id": "CARD.UNMOVABLE",
+      "name": "Unmovable",
+      "cost": 2,
+      "type": "Power",
+      "rarity": "Rare",
+      "description": "The first time you gain Block from a card each turn, double the amount gained.",
+      "stats": null,
+      "keywords": null,
+      "after_upgrade": {
+        "cost": 1,
+        "stats": null,
+        "description": "The first time you gain Block from a card each turn, double the amount gained.",
+        "added_keywords": null,
+        "removed_keywords": null
+      }
+    },
+    {
+      "index": 2,
+      "id": "CARD.BRAND",
+      "name": "Brand",
+      "cost": 0,
+      "type": "Skill",
+      "rarity": "Rare",
+      "description": "Lose {HpLoss:diff()} HP.\nExhaust 1 card.\nGain {StrengthPower:diff()} Strength.",
+      "stats": {
+        "hploss": 1,
+        "strengthpower": 1
+      },
+      "keywords": null,
+      "after_upgrade": {
+        "cost": 0,
+        "stats": {
+          "hploss": 1,
+          "strengthpower": 2
+        },
+        "description": "Lose {HpLoss:diff()} HP.\nExhaust 1 card.\nGain {StrengthPower:diff()} Strength.",
+        "added_keywords": null,
+        "removed_keywords": null
+      }
+    }
+  ],
+  "can_skip": true,
+  "gold_earned": 100,
+  "player": {
+    "name": "The Ironclad",
+    "hp": 16,
+    "max_hp": 83,
+    "block": 0,
+    "gold": 230,
+    "relics": [
+      {
+        "name": "Burning Blood",
+        "description": "At the end of combat, heal {Heal} HP.",
+        "vars": {
+          "Heal": 6
+        }
+      },
+      {
+        "name": "Arcane Scroll",
+        "description": "Upon pickup, obtain a random Rare Card to add to your Deck.",
+        "vars": {
+          "Cards": 1
+        }
+      },
+      {
+        "name": "Venerable Tea Set",
+        "description": "Whenever you enter a Rest Site, start the next combat with an additional {Energy:energyIcons()}.",
+        "vars": {
+          "Energy": 2
+        }
+      },
+      {
+        "name": "Anchor",
+        "description": "Start each combat with {Block} Block.",
+        "vars": {
+          "Block": 10
+        }
+      },
+      {
+        "name": "Whetstone",
+        "description": "Upon pickup, Upgrade {Cards} random {Cards:plural:Attack|Attacks}.",
+        "vars": {
+          "Cards": 2
+        }
+      },
+      {
+        "name": "Membership Card",
+        "description": "{Discount}% discount on all products!",
+        "vars": {
+          "Discount": 50
+        }
+      },
+      {
+        "name": "Reptile Trinket",
+        "description": "Whenever you use a potion, gain {StrengthPower} Strength this turn.",
+        "vars": {
+          "StrengthPower": 3
+        }
+      },
+      {
+        "name": "Pael's Claw",
+        "description": "Upon pickup, Enchant all Defends with {EnchantmentName}.",
+        "vars": {
+          "Cards": 3,
+          "EnchantmentName": 0
+        }
+      },
+      {
+        "name": "Horn Cleat",
+        "description": "At the start of your 2nd turn, gain {Block} Block.",
+        "vars": {
+          "Block": 14
+        }
+      },
+      {
+        "name": "Permafrost",
+        "description": "The first time you play a Power each combat, gain {Block} Block.",
+        "vars": {
+          "Block": 7
+        }
+      },
+      {
+        "name": "Stone Cracker",
+        "description": "At the start of each combat, Upgrade {Cards} random {Cards:plural:card|cards} in your Draw Pile for the rest of combat.",
+        "vars": {
+          "Cards": 2
+        }
+      }
+    ],
+    "potions": [
+      {
+        "index": 0,
+        "name": "Flex Potion",
+        "description": "Gain {StrengthPower} Strength. At the end of your turn, lose {StrengthPower} Strength.",
+        "vars": {
+          "StrengthPower": 5
+        },
+        "target_type": "AnyPlayer"
+      }
+    ],
+    "deck_size": 31,
+    "deck": [
+      {
+        "id": "CARD.STRIKE_IRONCLAD",
+        "name": "Strike",
+        "cost": 1,
+        "type": "Attack",
+        "upgraded": false,
+        "description": "Deal {Damage:diff()} damage.",
+        "stats": {
+          "damage": 6
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "damage": 9
+          },
+          "description": "Deal {Damage:diff()} damage.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.STRIKE_IRONCLAD",
+        "name": "Strike",
+        "cost": 1,
+        "type": "Attack",
+        "upgraded": false,
+        "description": "Deal {Damage:diff()} damage.",
+        "stats": {
+          "damage": 6
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "damage": 9
+          },
+          "description": "Deal {Damage:diff()} damage.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.STRIKE_IRONCLAD",
+        "name": "Strike",
+        "cost": 1,
+        "type": "Attack",
+        "upgraded": true,
+        "description": "Deal {Damage:diff()} damage.",
+        "stats": {
+          "damage": 9
+        },
+        "keywords": null,
+        "after_upgrade": null
+      },
+      {
+        "id": "CARD.STRIKE_IRONCLAD",
+        "name": "Strike",
+        "cost": 1,
+        "type": "Attack",
+        "upgraded": false,
+        "description": "Deal {Damage:diff()} damage.",
+        "stats": {
+          "damage": 6
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "damage": 9
+          },
+          "description": "Deal {Damage:diff()} damage.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.DEFEND_IRONCLAD",
+        "name": "Defend",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Gain {Block:diff()} Block.",
+        "stats": {
+          "block": 5
+        },
+        "keywords": [
+          "Exhaust"
+        ],
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "block": 8
+          },
+          "description": "Gain {Block:diff()} Block.",
+          "added_keywords": null,
+          "removed_keywords": [
+            "Exhaust"
+          ]
+        },
+        "enchantment": "Goopy",
+        "enchantment_amount": 5
+      },
+      {
+        "id": "CARD.DEFEND_IRONCLAD",
+        "name": "Defend",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Gain {Block:diff()} Block.",
+        "stats": {
+          "block": 5
+        },
+        "keywords": [
+          "Exhaust"
+        ],
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "block": 8
+          },
+          "description": "Gain {Block:diff()} Block.",
+          "added_keywords": null,
+          "removed_keywords": [
+            "Exhaust"
+          ]
+        },
+        "enchantment": "Goopy",
+        "enchantment_amount": 4
+      },
+      {
+        "id": "CARD.DEFEND_IRONCLAD",
+        "name": "Defend",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Gain {Block:diff()} Block.",
+        "stats": {
+          "block": 5
+        },
+        "keywords": [
+          "Exhaust"
+        ],
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "block": 8
+          },
+          "description": "Gain {Block:diff()} Block.",
+          "added_keywords": null,
+          "removed_keywords": [
+            "Exhaust"
+          ]
+        },
+        "enchantment": "Goopy",
+        "enchantment_amount": 4
+      },
+      {
+        "id": "CARD.DEFEND_IRONCLAD",
+        "name": "Defend",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Gain {Block:diff()} Block.",
+        "stats": {
+          "block": 5
+        },
+        "keywords": [
+          "Exhaust"
+        ],
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "block": 8
+          },
+          "description": "Gain {Block:diff()} Block.",
+          "added_keywords": null,
+          "removed_keywords": [
+            "Exhaust"
+          ]
+        },
+        "enchantment": "Goopy",
+        "enchantment_amount": 2
+      },
+      {
+        "id": "CARD.BASH",
+        "name": "Bash",
+        "cost": 2,
+        "type": "Attack",
+        "upgraded": false,
+        "description": "Deal {Damage:diff()} damage.\nApply {VulnerablePower:diff()} Vulnerable.",
+        "stats": {
+          "damage": 8,
+          "vulnerablepower": 2
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 2,
+          "stats": {
+            "damage": 10,
+            "vulnerablepower": 3
+          },
+          "description": "Deal {Damage:diff()} damage.\nApply {VulnerablePower:diff()} Vulnerable.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.CRIMSON_MANTLE",
+        "name": "Crimson Mantle",
+        "cost": 1,
+        "type": "Power",
+        "upgraded": true,
+        "description": "At the start of your turn, lose 1 HP and gain {CrimsonMantlePower:diff()} Block.",
+        "stats": {
+          "crimsonmantlepower": 10
+        },
+        "keywords": null,
+        "after_upgrade": null
+      },
+      {
+        "id": "CARD.CINDER",
+        "name": "Cinder",
+        "cost": 2,
+        "type": "Attack",
+        "upgraded": true,
+        "description": "Deal {Damage:diff()} damage.\nExhaust 1 card at random.",
+        "stats": {
+          "damage": 24
+        },
+        "keywords": null,
+        "after_upgrade": null
+      },
+      {
+        "id": "CARD.HEMOKINESIS",
+        "name": "Hemokinesis",
+        "cost": 1,
+        "type": "Attack",
+        "upgraded": true,
+        "description": "Lose {HpLoss:diff()} HP.\nDeal {Damage:diff()} damage.",
+        "stats": {
+          "hploss": 2,
+          "damage": 20
+        },
+        "keywords": null,
+        "after_upgrade": null
+      },
+      {
+        "id": "CARD.BLOODLETTING",
+        "name": "Bloodletting",
+        "cost": 0,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Lose {HpLoss:diff()} HP.\nGain {Energy:energyIcons()}.",
+        "stats": {
+          "hploss": 3,
+          "energy": 2
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 0,
+          "stats": {
+            "hploss": 3,
+            "energy": 3
+          },
+          "description": "Lose {HpLoss:diff()} HP.\nGain {Energy:energyIcons()}.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.BREAKTHROUGH",
+        "name": "Breakthrough",
+        "cost": 1,
+        "type": "Attack",
+        "upgraded": false,
+        "description": "Lose {HpLoss:diff()} HP.\nDeal {Damage:diff()} damage to ALL enemies.",
+        "stats": {
+          "damage": 9,
+          "hploss": 1
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "damage": 13,
+            "hploss": 1
+          },
+          "description": "Lose {HpLoss:diff()} HP.\nDeal {Damage:diff()} damage to ALL enemies.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.RUPTURE",
+        "name": "Rupture",
+        "cost": 1,
+        "type": "Power",
+        "upgraded": true,
+        "description": "Whenever you lose HP on your turn, gain {StrengthPower:diff()} Strength.",
+        "stats": {
+          "strengthpower": 2
+        },
+        "keywords": null,
+        "after_upgrade": null,
+        "enchantment": "Swift",
+        "enchantment_amount": 2
+      },
+      {
+        "id": "CARD.DRUM_OF_BATTLE",
+        "name": "Drum of Battle",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Draw {Cards:diff()} {Cards:plural:card|cards}.\nWhen this card is Exhausted, gain {Energy:energyIcons()}.",
+        "stats": {
+          "cards": 2,
+          "energy": 2
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "cards": 2,
+            "energy": 3
+          },
+          "description": "Draw {Cards:diff()} {Cards:plural:card|cards}.\nWhen this card is Exhausted, gain {Energy:energyIcons()}.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.BLOOD_WALL",
+        "name": "Blood Wall",
+        "cost": 2,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Lose {HpLoss:diff()} HP.\nGain {Block:diff()} Block.",
+        "stats": {
+          "hploss": 2,
+          "block": 16
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 2,
+          "stats": {
+            "hploss": 2,
+            "block": 20
+          },
+          "description": "Lose {HpLoss:diff()} HP.\nGain {Block:diff()} Block.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.THINKING_AHEAD",
+        "name": "Thinking Ahead",
+        "cost": 0,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Draw {Cards:diff()} {Cards:plural:card|cards}.\nPut 1 card from your Hand on top of your Draw Pile.",
+        "stats": {
+          "cards": 2
+        },
+        "keywords": [
+          "Exhaust"
+        ],
+        "after_upgrade": {
+          "cost": 0,
+          "stats": {
+            "cards": 2
+          },
+          "description": "Draw {Cards:diff()} {Cards:plural:card|cards}.\nPut 1 card from your Hand on top of your Draw Pile.",
+          "added_keywords": null,
+          "removed_keywords": [
+            "Exhaust"
+          ]
+        }
+      },
+      {
+        "id": "CARD.HOWL_FROM_BEYOND",
+        "name": "Howl from Beyond",
+        "cost": 3,
+        "type": "Attack",
+        "upgraded": false,
+        "description": "Deal {Damage:diff()} damage to ALL enemies.\nAt the end of your turn, if this is in your Exhaust Pile, play it.",
+        "stats": {
+          "damage": 16
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 3,
+          "stats": {
+            "damage": 21
+          },
+          "description": "Deal {Damage:diff()} damage to ALL enemies.\nAt the end of your turn, if this is in your Exhaust Pile, play it.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.TWIN_STRIKE",
+        "name": "Twin Strike",
+        "cost": 1,
+        "type": "Attack",
+        "upgraded": false,
+        "description": "Deal {Damage:diff()} damage twice.",
+        "stats": {
+          "damage": 5
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "damage": 7
+          },
+          "description": "Deal {Damage:diff()} damage twice.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.PYRE",
+        "name": "Pyre",
+        "cost": 2,
+        "type": "Power",
+        "upgraded": true,
+        "description": "Gain {Energy:energyIcons()} at the start of each turn.",
+        "stats": {
+          "energy": 2
+        },
+        "keywords": null,
+        "after_upgrade": null,
+        "enchantment": "Perfect Fit",
+        "enchantment_amount": 1
+      },
+      {
+        "id": "CARD.BATTLE_TRANCE",
+        "name": "Battle Trance",
+        "cost": 0,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Draw {Cards:diff()} cards.\nYou cannot draw additional cards this turn.",
+        "stats": {
+          "cards": 3
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 0,
+          "stats": {
+            "cards": 4
+          },
+          "description": "Draw {Cards:diff()} cards.\nYou cannot draw additional cards this turn.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.SPITE",
+        "name": "Spite",
+        "cost": 0,
+        "type": "Attack",
+        "upgraded": false,
+        "description": "Deal {Damage:diff()} damage.\nIf you lost HP this turn,\nhits {Repeat:diff()} times.",
+        "stats": {
+          "damage": 5,
+          "repeat": 2
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 0,
+          "stats": {
+            "damage": 5,
+            "repeat": 3
+          },
+          "description": "Deal {Damage:diff()} damage.\nIf you lost HP this turn,\nhits {Repeat:diff()} times.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.TRUE_GRIT",
+        "name": "True Grit",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": true,
+        "description": "Gain {Block:diff()} Block.\nExhaust 1 card{IfUpgraded:show:| at random}.",
+        "stats": {
+          "block": 9
+        },
+        "keywords": null,
+        "after_upgrade": null
+      },
+      {
+        "id": "CARD.STONE_ARMOR",
+        "name": "Stone Armor",
+        "cost": 1,
+        "type": "Power",
+        "upgraded": false,
+        "description": "Gain {PlatingPower:diff()} Plating.",
+        "stats": {
+          "platingpower": 4
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "platingpower": 6
+          },
+          "description": "Gain {PlatingPower:diff()} Plating.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.DAGGER_SPRAY",
+        "name": "Dagger Spray",
+        "cost": 1,
+        "type": "Attack",
+        "upgraded": false,
+        "description": "Deal {Damage:diff()} damage to ALL enemies twice.",
+        "stats": {
+          "damage": 4
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "damage": 6
+          },
+          "description": "Deal {Damage:diff()} damage to ALL enemies twice.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.WELL_LAID_PLANS",
+        "name": "Well-Laid Plans",
+        "cost": 1,
+        "type": "Power",
+        "upgraded": false,
+        "description": "At the end of your turn, Retain up to {RetainAmount:diff()} {RetainAmount:plural:card|cards}.",
+        "stats": {
+          "retainamount": 1
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "retainamount": 2
+          },
+          "description": "At the end of your turn, Retain up to {RetainAmount:diff()} {RetainAmount:plural:card|cards}.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.ECHOING_SLASH",
+        "name": "Echoing Slash",
+        "cost": 1,
+        "type": "Attack",
+        "upgraded": false,
+        "description": "Deal {Damage:diff()} damage to ALL enemies.\nRepeat this effect for each enemy killed.",
+        "stats": {
+          "damage": 10
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "damage": 13
+          },
+          "description": "Deal {Damage:diff()} damage to ALL enemies.\nRepeat this effect for each enemy killed.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.LANTERN_KEY",
+        "name": "Lantern Key",
+        "cost": 0,
+        "type": "Quest",
+        "upgraded": false,
+        "description": "Unlocks a special event in the next Act.",
+        "stats": null,
+        "keywords": [
+          "Unplayable"
+        ],
+        "after_upgrade": null
+      },
+      {
+        "id": "CARD.FEED",
+        "name": "Feed",
+        "cost": 1,
+        "type": "Attack",
+        "upgraded": false,
+        "description": "Deal {Damage:diff()} damage.\nIf Fatal, raise your Max HP by {MaxHp:diff()}.",
+        "stats": {
+          "damage": 10,
+          "maxhp": 3
+        },
+        "keywords": [
+          "Exhaust"
+        ],
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "damage": 12,
+            "maxhp": 4
+          },
+          "description": "Deal {Damage:diff()} damage.\nIf Fatal, raise your Max HP by {MaxHp:diff()}.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.BURNING_PACT",
+        "name": "Burning Pact",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Exhaust 1 card.\nDraw {Cards:diff()} cards.",
+        "stats": {
+          "cards": 2
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "cards": 3
+          },
+          "description": "Exhaust 1 card.\nDraw {Cards:diff()} cards.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      }
+    ]
+  }
+}

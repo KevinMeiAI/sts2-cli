@@ -2,6 +2,10 @@
 
 Engine: v0.107.1 (Steam build 23811903). Date: 2026-09-22.
 
+Later update: [Act 2 continuation](act2-validation.md) implements Crystal Sphere,
+continues the Necrobinder save, and records additional combat/reward fixes. The
+unsupported-grid limitation and 99-test count below describe this earlier pass.
+
 ## Manually directed runs
 
 Each seed was rolled once. The current Codex assistant chose every route, event,
