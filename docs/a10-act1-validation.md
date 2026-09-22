@@ -56,7 +56,7 @@ trace reported no command errors or engine exception lines.
 | P2 | Shop, floor 9, command 77 | Stocked relic and potion descriptions contain `{Cards}`, `{Damage}`, or `{DexterityPower}` but omit effect variables. Price and availability are correct. Owned potion summaries do expose `DexterityPower=2`. | Include dynamic variables in stocked relic/potion entries, as in player inventory summaries. |
 | P3 | Speed Potion, boss turn 3, command 149 | A player power is named `SPEED_POTION_POWER.title`, with a raw description key. Its temporary +5 Dexterity effect and expiration worked. | Resolve the power's actual localization key or provide an explicit fallback, without inventing a description. |
 
-These display issues remain open. Preview damage is attack damage before final
+These three display issues were subsequently repaired; see [A10 event coverage](a10-event-coverage.md). Preview damage is attack damage before final
 HP-loss modifiers; it must not be treated as exact HP loss through Block or
 Slippery. No live-game choices were revised during verification.
 

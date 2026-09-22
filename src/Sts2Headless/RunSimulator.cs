@@ -25,6 +25,7 @@ using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.TestSupport;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Localization;
+using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Multiplayer.Serialization;
 using MegaCrit.Sts2.Core.Saves;
 using MegaCrit.Sts2.Core.Unlocks;
@@ -184,13 +185,13 @@ internal class LocLookup
             foreach (var tableName in _zhs.Keys)
             {
                 var zh = _zhs.GetValueOrDefault(tableName)?.GetValueOrDefault(locKey);
-                if (zh != null) return zh;
+                if (zh != null) return StripBBCode(zh);
             }
         }
         foreach (var tableName in _eng.Keys)
         {
             var en = _eng.GetValueOrDefault(tableName)?.GetValueOrDefault(locKey);
-            if (en != null) return en;
+            if (en != null) return StripBBCode(en);
         }
         return locKey;
     }
@@ -1600,6 +1601,10 @@ public class RunSimulator
                 var optCountBefore = options?.Count ?? 0;
                 if (options != null && optionIndex >= 0 && optionIndex < options.Count)
                 {
+                    var unsupported = UnsupportedEventOption(localEvent, options[optionIndex]);
+                    if (unsupported != null)
+                        return new() { ["type"] = "error", ["code"] = "unsupported_interaction",
+                            ["message"] = unsupported, ["state_unchanged"] = true };
                     try
                     {
                         _eventOptionChosen = true;
@@ -1637,6 +1642,15 @@ public class RunSimulator
 
         WaitForActionExecutor();
         return DetectDecisionPoint();
+    }
+
+    private static string? UnsupportedEventOption(EventModel model, EventOption option)
+    {
+        if (model is MegaCrit.Sts2.Core.Models.Events.CrystalSphere)
+            return "Crystal Sphere requires a grid minigame interface that the CLI does not implement yet. No payment or curse was applied.";
+        if (model is MegaCrit.Sts2.Core.Models.Events.Trial && option.TextKey?.EndsWith(".DOUBLE_DOWN") == true)
+            return "Trial's abandon-run confirmation is not implemented by the CLI. Choose Accept to continue the trial, or save and quit.";
+        return null;
     }
 
     private Dictionary<string, object?> DoLeaveRoom(Player player)
@@ -2020,7 +2034,13 @@ public class RunSimulator
             }
             else
             {
-                choices = (currentPoint.Children ?? Enumerable.Empty<MapPoint>())
+                var children = currentPoint.Children ?? new HashSet<MapPoint>();
+                var destinations = children.AsEnumerable();
+                if (currentPoint.coord.row + 1 < map.GetRowCount() &&
+                    MegaCrit.Sts2.Core.Hooks.Hook.ShouldAllowFreeTravel(_runState))
+                    destinations = destinations.Concat(map.GetPointsInRow(currentPoint.coord.row + 1)
+                        .Where(point => point != null)).Distinct();
+                choices = destinations
                     .Select(child => new Dictionary<string, object?>
                     {
                         ["col"] = (int)child.coord.col,
@@ -2262,12 +2282,7 @@ public class RunSimulator
                 catch { }
 
                 // Enemy powers
-                var ePowers = e.Powers?.Select(pw => new Dictionary<string, object?>
-                {
-                    ["name"] = _loc.Power(pw.Id.Entry),
-                    ["description"] = _loc.Bilingual("powers", pw.Id.Entry + ".description"),
-                    ["amount"] = pw.Amount,
-                }).ToList();
+                var ePowers = e.Powers?.Select(PowerSummary).ToList();
 
                 return new Dictionary<string, object?>
                 {
@@ -2283,12 +2298,7 @@ public class RunSimulator
             }).ToList() ?? new();
 
         // Player powers/buffs
-        var playerPowers = player.Creature?.Powers?.Select(pw => new Dictionary<string, object?>
-        {
-            ["name"] = _loc.Power(pw.Id.Entry),
-            ["description"] = _loc.Bilingual("powers", pw.Id.Entry + ".description"),
-            ["amount"] = pw.Amount,
-        }).ToList();
+        var playerPowers = player.Creature?.Powers?.Select(PowerSummary).ToList();
 
         var result = new Dictionary<string, object?>
         {
@@ -2587,7 +2597,7 @@ public class RunSimulator
                     {
                         optVars = new Dictionary<string, object?>();
                         foreach (var dv in localEvent.DynamicVars.Values)
-                            optVars[dv.Name] = (int)dv.BaseValue;
+                            optVars[dv.Name] = DynamicValue(dv);
                     }
                 }
                 catch { }
@@ -2604,7 +2614,7 @@ public class RunSimulator
                             optVars ??= new Dictionary<string, object?>();
                             var mutable = relicModel.ToMutable();
                             foreach (var dv in mutable.DynamicVars.Values)
-                                optVars[dv.Name] = (int)dv.BaseValue;
+                                optVars[dv.Name] = DynamicValue(dv);
                         }
                     }
                     catch { }
@@ -2633,6 +2643,8 @@ public class RunSimulator
                     ["description"] = optDesc,
                     ["text_key"] = opt.TextKey,
                     ["is_locked"] = opt.IsLocked,
+                    ["is_supported"] = UnsupportedEventOption(localEvent, opt) == null,
+                    ["unsupported_reason"] = UnsupportedEventOption(localEvent, opt),
                     ["vars"] = optVars?.Count > 0 ? optVars : null,
                 };
             }).ToList();
@@ -2645,11 +2657,21 @@ public class RunSimulator
 
         // Resolve event description, suppress if key not found
         string? eventDesc = null;
+        Dictionary<string, object?>? descriptionVars = null;
         if (localEvent.Description != null)
         {
             var d = _loc.Bilingual(localEvent.Description.LocTable, localEvent.Description.LocEntryKey);
             if (d != localEvent.Description.LocEntryKey)
                 eventDesc = d;
+            descriptionVars = localEvent.Description.Variables.ToDictionary(pair => pair.Key,
+                pair => pair.Value is DynamicVar variable ? DynamicValue(variable) : (object?)pair.Value);
+            if (eventDesc != null && descriptionVars.Count > 0)
+            {
+                try { eventDesc = SmartFormat.Smart.Format(
+                    System.Globalization.CultureInfo.GetCultureInfo(_loc.Lang == "zh" ? "zh-CN" : "en-US"),
+                    eventDesc, descriptionVars); }
+                catch { /* Keep the template and expose its variables if formatting is unsupported. */ }
+            }
         }
 
         return new Dictionary<string, object?>
@@ -2659,6 +2681,7 @@ public class RunSimulator
             ["context"] = RunContext(),
             ["event_name"] = eventName,
             ["description"] = eventDesc,
+            ["description_vars"] = descriptionVars?.Count > 0 ? descriptionVars : null,
             ["options"] = options,
             ["player"] = PlayerSummary(_runState!.Players[0]),
         };
@@ -2693,6 +2716,56 @@ public class RunSimulator
             ["options"] = optionList,
             ["player"] = PlayerSummary(player),
         };
+    }
+
+    private static string CreatureName(Creature? creature)
+    {
+        var title = creature?.Monster?.Title ?? creature?.Player?.Character.Title;
+        return title == null ? "" : _loc.Bilingual(title.LocTable, title.LocEntryKey);
+    }
+
+    private static Dictionary<string, object?> PowerSummary(PowerModel power)
+    {
+        // Generic descriptions contain example amounts. Mutable powers use the
+        // smart template and actual variables, just like the engine hover tip.
+        var smartKey = power.SmartDescription.LocEntryKey;
+        var hasSmart = _loc.En("powers", smartKey) != null || _loc.Zh("powers", smartKey) != null;
+        var description = hasSmart ? _loc.Bilingual("powers", smartKey)
+            : _loc.Bilingual(power.Description.LocTable, power.Description.LocEntryKey);
+        var vars = EffectVars(power.DynamicVars.Values) ?? new Dictionary<string, object?>();
+        vars["Amount"] = power.Amount;
+        vars["OnPlayer"] = power.Owner?.IsPlayer ?? false;
+        vars["IsMultiplayer"] = false;
+        vars["PlayerCount"] = 1;
+        vars["OwnerName"] = CreatureName(power.Owner);
+        vars["ApplierName"] = CreatureName(power.Applier);
+        vars["TargetName"] = CreatureName(power.Target);
+        var formatVars = new Dictionary<string, object?>(vars);
+        // LocString.Add(string, string) wraps strings in StringVar.
+        formatVars["ApplierName"] = new { StringValue = vars["ApplierName"] };
+        bool isTemplate = false;
+        try { description = SmartFormat.Smart.Format(System.Globalization.CultureInfo.GetCultureInfo(_loc.Lang == "zh" ? "zh-CN" : "en-US"), description, formatVars); }
+        catch { isTemplate = description.Contains('{'); }
+        return new()
+        {
+            ["name"] = _loc.Bilingual(power.Title.LocTable, power.Title.LocEntryKey),
+            ["description"] = description,
+            ["description_is_template"] = isTemplate,
+            ["vars"] = vars,
+            ["amount"] = power.Amount,
+        };
+    }
+
+    private static object DynamicValue(DynamicVar variable) => variable is StringVar text
+        ? _loc.BilingualFromKey(text.StringValue)
+        : variable.BaseValue == decimal.Truncate(variable.BaseValue)
+            ? (object)(int)variable.BaseValue : variable.BaseValue;
+
+    private static Dictionary<string, object?>? EffectVars(IEnumerable<DynamicVar>? variables)
+    {
+        if (variables == null) return null;
+        var result = variables.ToDictionary(v => v.Name, v => (object?)DynamicValue(v));
+        return result.Count > 0 ? result : null;
     }
 
     private static Dictionary<string, object?> SoldOutSlot(int index) =>
@@ -2753,6 +2826,7 @@ public class RunSimulator
             ["index"] = i,
             ["name"] = _loc.Relic(e.Model?.Id.Entry ?? "?"),
             ["description"] = _loc.Bilingual("relics", (e.Model?.Id.Entry ?? "?") + ".description"),
+            ["vars"] = EffectVars(e.Model?.DynamicVars.Values),
             ["cost"] = e.Cost,
             ["is_stocked"] = e.IsStocked,
         }).ToList();
@@ -2762,6 +2836,7 @@ public class RunSimulator
             ["index"] = i,
             ["name"] = _loc.Potion(e.Model?.Id.Entry ?? "?"),
             ["description"] = _loc.Bilingual("potions", (e.Model?.Id.Entry ?? "?") + ".description"),
+            ["vars"] = EffectVars(e.Model?.DynamicVars.Values),
             ["cost"] = e.Cost,
             ["is_stocked"] = e.IsStocked,
         }).ToList();
@@ -3131,6 +3206,8 @@ public class RunSimulator
         // Patch TalkCmd.Play to a no-op (issue #64). Monster speech-bubble VFX during
         // moves (e.g. BygoneEffigy.WakeMove) NRE in headless and break the enemy turn.
         PatchTalkCmd();
+        PatchDenseVegetationRest();
+        PatchEventCosmetics();
 
         // Initialize localization system (needed for events, cards, etc.)
         InitLocManager();
@@ -3264,6 +3341,83 @@ public class RunSimulator
         {
             Console.Error.WriteLine($"[WARN] Failed to patch Cmd.Wait: {ex.Message}");
         }
+    }
+
+    private static void PatchEventCosmetics()
+    {
+        var harmony = new Harmony("sts2headless.eventcosmetics");
+        foreach (var (type, method) in new[]
+        {
+            (typeof(MegaCrit.Sts2.Core.Models.Events.Amalgamator), "CombineStrikes"),
+            (typeof(MegaCrit.Sts2.Core.Models.Events.Amalgamator), "CombineDefends"),
+            (typeof(MegaCrit.Sts2.Core.Models.Events.PunchOff), "Nab"),
+        })
+        {
+            var asyncMethod = AccessTools.Method(type, method);
+            var machine = asyncMethod.GetCustomAttribute<System.Runtime.CompilerServices.AsyncStateMachineAttribute>()
+                ?? throw new InvalidOperationException($"{type.Name}.{method} async state machine changed");
+            harmony.Patch(AccessTools.Method(machine.StateMachineType, "MoveNext"),
+                transpiler: new HarmonyMethod(typeof(RunSimulator), nameof(SkipEventScreenShake)));
+        }
+        foreach (var method in new[] { "Accept", "AddVfxAnchoredToPortrait" })
+            harmony.Patch(AccessTools.Method(typeof(MegaCrit.Sts2.Core.Models.Events.Trial), method),
+                transpiler: new HarmonyMethod(typeof(RunSimulator), nameof(SkipTrialCosmetics)));
+    }
+
+    private static void NoScreenShake(MegaCrit.Sts2.Core.Nodes.NGame? game,
+        MegaCrit.Sts2.Core.Nodes.Vfx.Utilities.ShakeStrength strength) { }
+
+    private static IEnumerable<CodeInstruction> SkipEventScreenShake(IEnumerable<CodeInstruction> instructions)
+    {
+        var code = instructions.ToList();
+        var shake = AccessTools.Method(typeof(MegaCrit.Sts2.Core.Nodes.NGame), "ScreenShakeTrauma");
+        var calls = code.Where(i => i.Calls(shake)).ToList();
+        if (calls.Count == 0) throw new InvalidOperationException("Event screen-shake call changed");
+        foreach (var call in calls)
+        {
+            // Static wrapper accepts the null scene singleton without a callvirt
+            // null check. Preserve every gameplay instruction around the VFX.
+            call.opcode = System.Reflection.Emit.OpCodes.Call;
+            call.operand = AccessTools.Method(typeof(RunSimulator), nameof(NoScreenShake));
+        }
+        return code;
+    }
+
+    private static IEnumerable<CodeInstruction> SkipTrialCosmetics(IEnumerable<CodeInstruction> instructions)
+    {
+        var code = instructions.ToList();
+        var isMe = AccessTools.Method(typeof(LocalContext), nameof(LocalContext.IsMe), new[] { typeof(Player) });
+        var calls = code.Where(i => i.Calls(isMe)).ToList();
+        if (calls.Count == 0) throw new InvalidOperationException("Trial cosmetic guards changed");
+        foreach (var call in calls)
+            call.operand = AccessTools.Method(typeof(RunSimulator), nameof(NoLocalCosmetics));
+        return code;
+    }
+
+    private static void PatchDenseVegetationRest()
+    {
+        // In v0.107.1 Rest heals first, then runs local-only audio/rumble, then
+        // offers Fight. Skip only that cosmetic block; keep the engine's healing,
+        // event state transition and combat callback intact.
+        var rest = AccessTools.Method(typeof(MegaCrit.Sts2.Core.Models.Events.DenseVegetation), "Rest");
+        var stateMachine = rest.GetCustomAttribute<System.Runtime.CompilerServices.AsyncStateMachineAttribute>()
+            ?? throw new InvalidOperationException("DenseVegetation.Rest async state machine changed");
+        var moveNext = AccessTools.Method(stateMachine.StateMachineType, "MoveNext");
+        new Harmony("sts2headless.densevegetation").Patch(moveNext,
+            transpiler: new HarmonyMethod(typeof(RunSimulator), nameof(SkipDenseRestCosmetics)));
+    }
+
+    private static bool NoLocalCosmetics(Player player) => false;
+
+    private static IEnumerable<CodeInstruction> SkipDenseRestCosmetics(IEnumerable<CodeInstruction> instructions)
+    {
+        var code = instructions.ToList();
+        var isMe = AccessTools.Method(typeof(LocalContext), nameof(LocalContext.IsMe), new[] { typeof(Player) });
+        var calls = code.Where(i => i.Calls(isMe)).ToList();
+        if (calls.Count != 1)
+            throw new InvalidOperationException("DenseVegetation.Rest cosmetic guard changed");
+        calls[0].operand = AccessTools.Method(typeof(RunSimulator), nameof(NoLocalCosmetics));
+        return code;
     }
 
     private static void PatchTalkCmd()

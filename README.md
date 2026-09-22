@@ -121,6 +121,20 @@ or price. Clients should filter on `is_stocked`. Attack `damage_by_target` inclu
 `repeat` and `total_damage`; it previews attack damage before final HP-loss modifiers
 such as Block and Slippery. It is not a promise of how much HP the target will lose.
 
+## A10 event coverage and known limits
+
+See [Silent / Necrobinder A10 validation](docs/a10-event-coverage.md) for manually
+played first acts, the event-branch survey, repairs and remaining limitations.
+Power summaries now expose live `vars` and `description_is_template`. Shop relics
+and potions expose their effect variables; event string values remain strings.
+Event options include `is_supported` and `unsupported_reason` separately from
+the game's `is_locked`. Unsupported choices return `code: unsupported_interaction`
+and `state_unchanged: true` before their effects run. Crystal Sphere's grid
+minigame and Trial's abandon confirmation are not implemented yet.
+
+中文：本轮已修复事件崩溃、状态说明、商店效果参数和飞靴地图选项；详见上方报告。
+水晶球小游戏及审判的放弃确认尚未接入，CLI 会在执行效果前明确返回不支持。
+
 ## Game Logs
 
 Every run is automatically logged to `logs/` as a JSONL file (one JSON per line), recording each game state and action with timestamps. Logs older than 7 days are cleaned up automatically.
