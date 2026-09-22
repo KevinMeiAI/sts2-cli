@@ -35,8 +35,10 @@
         "added_keywords": null,
         "removed_keywords": [
           "Exhaust"
-        ]
-      }
+        ],
+        "upgraded": true
+      },
+      "upgraded": false
     },
     {
       "index": 1,
@@ -57,8 +59,10 @@
         },
         "description": "Whenever you play a Soul, Summon {DevourLifePower:diff()}.",
         "added_keywords": null,
-        "removed_keywords": null
-      }
+        "removed_keywords": null,
+        "upgraded": true
+      },
+      "upgraded": false
     },
     {
       "index": 2,
@@ -85,8 +89,10 @@
         },
         "description": "If Osty is alive, he dies and you gain Block equal to double his Max HP.{InCombat:\n(Gain {IsOstyAlive:{CalculatedBlock:diff()}|0} Block)|}",
         "added_keywords": null,
-        "removed_keywords": null
-      }
+        "removed_keywords": null,
+        "upgraded": true
+      },
+      "upgraded": false
     }
   ],
   "can_skip": true,
@@ -178,7 +184,8 @@
           },
           "description": "Gain {Block:diff()} Block.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -199,7 +206,8 @@
           },
           "description": "Gain {Block:diff()} Block.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -220,7 +228,8 @@
           },
           "description": "Gain {Block:diff()} Block.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -241,7 +250,8 @@
           },
           "description": "Gain {Block:diff()} Block.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -262,7 +272,8 @@
           },
           "description": "Summon {Summon:diff()}.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -287,7 +298,8 @@
           },
           "description": "Osty deals {CalculatedDamage:diff()} damage.\nDeals additional damage equal to Osty's current HP.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -353,7 +365,8 @@
           },
           "description": "Deal {Damage:diff()} damage.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -378,7 +391,8 @@
           "added_keywords": [
             "Retain"
           ],
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -428,7 +442,8 @@
           },
           "description": "Gain {Block:diff()} Block.\nApply {DoomPower:diff()} Doom to ALL enemies.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -468,7 +483,8 @@
           "added_keywords": [
             "Retain"
           ],
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -489,7 +505,8 @@
           },
           "description": "At the start of your turn, apply {CountdownPower:diff()} Doom to a random enemy.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -510,7 +527,8 @@
           },
           "description": "Summon {Summon:diff()}.\nWhenever Osty loses HP,\nALL enemies lose that much HP as well.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -576,7 +594,8 @@
           },
           "description": "Gain {Block:diff()} Block.\nAdd a Soul into your Draw Pile.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -597,7 +616,8 @@
           },
           "description": "Whenever you draw an Ethereal card, draw {Cards:diff()} {Cards:plural:card|cards}.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -620,7 +640,8 @@
           },
           "description": "Enemy loses {StrengthLoss:diff()} Strength this turn.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -669,7 +690,8 @@
           },
           "description": "Apply {DoomPower:diff()} Doom.\nDraw {Cards:diff()} {Cards:plural:card|cards}.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       }
     ]

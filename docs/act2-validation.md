@@ -1,5 +1,8 @@
 # Continuing the saved runs through Act 2
 
+Update: the X-cost metadata limitation noted below was resolved by
+[Defect A10 validation](defect-a10-validation.md).
+
 Engine: **v0.107.1**, Steam build **23811903**. Date: **2026-09-22**.
 
 ## Actual runs

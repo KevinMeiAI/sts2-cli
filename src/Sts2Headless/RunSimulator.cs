@@ -346,7 +346,12 @@ public partial class RunSimulator
                         var id = rEl.GetString();
                         if (id == null) continue;
                         var model = ModelDb.GetById<RelicModel>(new ModelId("RELIC", id));
-                        if (model != null) list.Add(model.ToMutable());
+                        if (model != null)
+                        {
+                            var mutable = model.ToMutable();
+                            mutable.Owner = player;
+                            list.Add(mutable);
+                        }
                     }
                 }
             }
@@ -1805,7 +1810,7 @@ public partial class RunSimulator
                     var stats = new Dictionary<string, object?>();
                     try { foreach (var dv in card.DynamicVars.Values) stats[dv.Name.ToLowerInvariant()] = (int)dv.BaseValue; } catch { }
                     var bkws = card.Keywords?.Where(k => k != CardKeyword.None).Select(k => k.ToString()).ToList();
-                    return WithCardDescriptionVars(card, new Dictionary<string, object?>
+                    return WithCardMetadata(card, new Dictionary<string, object?>
                     {
                         ["name"] = _loc.Card(card.Id.Entry),
                         ["cost"] = card.EnergyCost?.GetResolved() ?? 0,
@@ -1837,7 +1842,7 @@ public partial class RunSimulator
                 var stats = new Dictionary<string, object?>();
                 try { foreach (var dv in cr.Card.DynamicVars.Values) stats[dv.Name.ToLowerInvariant()] = (int)dv.BaseValue; } catch { }
                 var rrkws = cr.Card.Keywords?.Where(k => k != CardKeyword.None).Select(k => k.ToString()).ToList();
-                return WithCardDescriptionVars(cr.Card, new Dictionary<string, object?>
+                return WithCardMetadata(cr.Card, new Dictionary<string, object?>
                 {
                     ["index"] = i,
                     ["id"] = cr.Card.Id.ToString(),
@@ -1873,7 +1878,7 @@ public partial class RunSimulator
                 var stats = new Dictionary<string, object?>();
                 try { foreach (var dv in card.DynamicVars.Values) stats[dv.Name.ToLowerInvariant()] = (int)dv.BaseValue; } catch { }
                 var selkws = card.Keywords?.Where(k => k != CardKeyword.None).Select(k => k.ToString()).ToList();
-                return WithCardDescriptionVars(card, new Dictionary<string, object?>
+                return WithCardMetadata(card, new Dictionary<string, object?>
                 {
                     ["index"] = i,
                     ["id"] = card.Id.ToString(),
@@ -2177,7 +2182,7 @@ public partial class RunSimulator
                             && tgt.Powers.Any(p => p?.Id.Entry == "VULNERABLE_POWER"))
                             repeat = 2;
                         // These fixed hit counts live in OnPlay, not a DynamicVar.
-                        if (c.Id.Entry is "TWIN_STRIKE" or "DAGGER_SPRAY") repeat = 2;
+                        if (c.Id.Entry is "TWIN_STRIKE" or "DAGGER_SPRAY" or "UPROAR") repeat = 2;
                         if (c is MadScience science && science.TinkerTimeRider == TinkerTime.RiderEffect.Violence)
                             repeat = (int)c.DynamicVars["ViolenceHits"].BaseValue;
                         // Spite's Repeat is conditional; use the same native history
@@ -2240,7 +2245,7 @@ public partial class RunSimulator
             }
             if (damageByTarget != null && damageByTarget.Count > 0)
                 cardInfo["damage_by_target"] = damageByTarget;
-            return WithCardDescriptionVars(c, cardInfo);
+            return WithCardMetadata(c, cardInfo);
         }).ToList() ?? new();
 
         var playerCreatures = combatState?.PlayerCreatures?.ToList();
@@ -2331,16 +2336,11 @@ public partial class RunSimulator
         {
             // Defect: Orbs
             var orbQueue = pcs?.OrbQueue;
-            if (orbQueue?.Orbs?.Count > 0)
+            if (orbQueue != null && (orbQueue.Capacity > 0 || player.Character?.Id.Entry == "DEFECT"))
             {
-                result["orbs"] = orbQueue.Orbs.Select((orb, i) => new Dictionary<string, object?>
-                {
-                    ["index"] = i,
-                    ["name"] = _loc.Bilingual("orbs", orb.Id.Entry + ".title"),
-                    ["type"] = orb.GetType().Name.Replace("Orb", ""),
-                    ["passive"] = (int)orb.PassiveVal,
-                    ["evoke"] = (int)orb.EvokeVal,
-                }).ToList();
+                // A depleted queue (including zero slots after Bulk Up) is still
+                // meaningful state. Queue order is native: index 0 evokes first.
+                result["orbs"] = orbQueue.Orbs.Select((orb, i) => OrbSummary(orb, i)).ToList();
                 result["orb_slots"] = orbQueue.Capacity;
             }
 
@@ -2484,7 +2484,7 @@ public partial class RunSimulator
             var stats = new Dictionary<string, object?>();
             try { foreach (var dv in c.DynamicVars.Values) stats[dv.Name.ToLowerInvariant()] = (int)dv.BaseValue; } catch { }
             var crkws = c.Keywords?.Where(k => k != CardKeyword.None).Select(k => k.ToString()).ToList();
-            return WithCardDescriptionVars(c, new Dictionary<string, object?>
+            return WithCardMetadata(c, new Dictionary<string, object?>
             {
                 ["index"] = i,
                 ["id"] = c.Id.ToString(),
@@ -2840,7 +2840,7 @@ public partial class RunSimulator
                 }
                 catch { }
                 var shopkws = card?.Keywords?.Where(k => k != CardKeyword.None).Select(k => k.ToString()).ToList();
-                return new Dictionary<string, object?>
+                var info = new Dictionary<string, object?>
                 {
                     ["index"] = i,
                     ["name"] = _loc.Card(entry),
@@ -2855,6 +2855,7 @@ public partial class RunSimulator
                     ["is_stocked"] = e.IsStocked,
                     ["on_sale"] = e.IsOnSale,
                 };
+                return card != null ? WithCardMetadata(card, info) : info;
             }).ToList();
 
         var relics = inv.RelicEntries.Select((e, i) => !e.IsStocked ? SoldOutSlot(i) : new Dictionary<string, object?>
@@ -3001,12 +3002,40 @@ public partial class RunSimulator
 
     #region Helpers
 
+    private Dictionary<string, object?> OrbSummary(OrbModel orb, int index)
+    {
+        var description = _loc.Bilingual("orbs", orb.Id.Entry + ".smartDescription");
+        if (description == orb.Id.Entry + ".smartDescription")
+            description = _loc.Bilingual("orbs", orb.Id.Entry + ".description");
+        // Match the native hover tip's current values, including Focus and a
+        // Dark/Glass orb's accumulated value. Avoid Godot's image-only icons.
+        description = description.Replace("{Passive}", orb.PassiveVal.ToString(System.Globalization.CultureInfo.InvariantCulture))
+            .Replace("{Evoke}", orb.EvokeVal.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        description = System.Text.RegularExpressions.Regex.Replace(description,
+            @"\{energyPrefix:energyIcons\((\d+)\)\}",
+            match => match.Groups[1].Value + (_loc.Lang == "zh" ? "点能量" : " Energy"));
+        return new()
+        {
+            ["index"] = index,
+            ["name"] = _loc.Bilingual("orbs", orb.Id.Entry + ".title"),
+            ["type"] = orb.GetType().Name.Replace("Orb", ""),
+            ["passive"] = (int)orb.PassiveVal,
+            ["evoke"] = (int)orb.EvokeVal,
+            ["description"] = description,
+            ["description_is_template"] = description.Contains('{'),
+        };
+    }
+
     // Mad Science shares one template and all numeric vars across its variants.
     // Export the native selectors so clients can distinguish the chosen effect
     // from the unused branches (including cards offered in selection screens).
-    private static Dictionary<string, object?> WithCardDescriptionVars(
+    private static Dictionary<string, object?> WithCardMetadata(
         CardModel card, Dictionary<string, object?> info)
     {
+        info["upgraded"] = card.IsUpgraded;
+        // Keep the numeric resolved cost for existing clients; this flag
+        // distinguishes X from a genuinely free card on every card surface.
+        if (card.EnergyCost?.CostsX == true) info["costs_x"] = true;
         if (card is MadScience science)
         {
             var vars = new Dictionary<string, object?>
@@ -3105,7 +3134,7 @@ public partial class RunSimulator
             var addedKws = newKws.Except(oldKws).ToList();
             var removedKws = oldKws.Except(newKws).ToList();
 
-            return WithCardDescriptionVars(clone, new Dictionary<string, object?>
+            return WithCardMetadata(clone, new Dictionary<string, object?>
             {
                 ["cost"] = clone.EnergyCost?.GetResolved() ?? 0,
                 ["stats"] = stats.Count > 0 ? stats : null,
@@ -3181,7 +3210,7 @@ public partial class RunSimulator
                     dcard["affliction"] = _loc.Bilingual("afflictions", c.Affliction.Id.Entry + ".title");
                     try { if (c.Affliction.Amount != 0) dcard["affliction_amount"] = c.Affliction.Amount; } catch { }
                 }
-                return WithCardDescriptionVars(c, dcard);
+                return WithCardMetadata(c, dcard);
             }).ToList(),
         };
     }

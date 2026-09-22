@@ -153,7 +153,8 @@
           },
           "description": "Deal {Damage:diff()} damage.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -174,7 +175,8 @@
           },
           "description": "Deal {Damage:diff()} damage.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -208,7 +210,8 @@
           },
           "description": "Deal {Damage:diff()} damage.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -233,7 +236,8 @@
           "added_keywords": null,
           "removed_keywords": [
             "Exhaust"
-          ]
+          ],
+          "upgraded": true
         },
         "enchantment": "Goopy",
         "enchantment_amount": 5
@@ -260,7 +264,8 @@
           "added_keywords": null,
           "removed_keywords": [
             "Exhaust"
-          ]
+          ],
+          "upgraded": true
         },
         "enchantment": "Goopy",
         "enchantment_amount": 4
@@ -287,7 +292,8 @@
           "added_keywords": null,
           "removed_keywords": [
             "Exhaust"
-          ]
+          ],
+          "upgraded": true
         },
         "enchantment": "Goopy",
         "enchantment_amount": 4
@@ -314,7 +320,8 @@
           "added_keywords": null,
           "removed_keywords": [
             "Exhaust"
-          ]
+          ],
+          "upgraded": true
         },
         "enchantment": "Goopy",
         "enchantment_amount": 2
@@ -379,7 +386,8 @@
           },
           "description": "Lose {HpLoss:diff()} HP.\nGain {Energy:energyIcons()}.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -402,7 +410,8 @@
           },
           "description": "Lose {HpLoss:diff()} HP.\nDeal {Damage:diff()} damage to ALL enemies.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -440,7 +449,8 @@
           },
           "description": "Draw {Cards:diff()} {Cards:plural:card|cards}.\nWhen this card is Exhausted, gain {Energy:energyIcons()}.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -463,7 +473,8 @@
           },
           "description": "Lose {HpLoss:diff()} HP.\nGain {Block:diff()} Block.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -488,7 +499,8 @@
           "added_keywords": null,
           "removed_keywords": [
             "Exhaust"
-          ]
+          ],
+          "upgraded": true
         }
       },
       {
@@ -509,7 +521,8 @@
           },
           "description": "Deal {Damage:diff()} damage to ALL enemies.\nAt the end of your turn, if this is in your Exhaust Pile, play it.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -530,7 +543,8 @@
           },
           "description": "Deal {Damage:diff()} damage twice.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -566,7 +580,8 @@
           },
           "description": "Draw {Cards:diff()} cards.\nYou cannot draw additional cards this turn.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -589,7 +604,8 @@
           },
           "description": "Deal {Damage:diff()} damage.\nIf you lost HP this turn,\nhits {Repeat:diff()} times.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -623,7 +639,8 @@
           },
           "description": "Gain {PlatingPower:diff()} Plating.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -644,7 +661,8 @@
           },
           "description": "Deal {Damage:diff()} damage to ALL enemies twice.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -665,7 +683,8 @@
           },
           "description": "At the end of your turn, Retain up to {RetainAmount:diff()} {RetainAmount:plural:card|cards}.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -686,7 +705,8 @@
           },
           "description": "Deal {Damage:diff()} damage to ALL enemies.\nRepeat this effect for each enemy killed.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -711,7 +731,8 @@
           },
           "description": "Deal {Damage:diff()} damage.\nIf Fatal, raise your Max HP by {MaxHp:diff()}.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -732,7 +753,8 @@
           },
           "description": "Exhaust 1 card.\nDraw {Cards:diff()} cards.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -755,7 +777,8 @@
           },
           "description": "Lose {HpLoss:diff()} HP.\nExhaust 1 card.\nGain {StrengthPower:diff()} Strength.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -778,7 +801,8 @@
           },
           "description": "Gain {Block:diff()} Block.\nDraw {Cards:diff()} card.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -799,7 +823,8 @@
           },
           "description": "At the start of your turn, lose 1 HP.\nWhenever you lose HP on your turn, deal {InfernoPower:diff()} damage to ALL enemies.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -827,7 +852,8 @@
           "damage": 8
         },
         "keywords": null,
-        "after_upgrade": null
+        "after_upgrade": null,
+        "costs_x": true
       },
       {
         "id": "CARD.POMMEL_STRIKE",

@@ -371,7 +371,7 @@ def desc(obj, selectors=None):
                 return branches[index] if index < len(branches) else branches[-1]
             key, separator, branches = full.partition(':')
             if separator and selectors and isinstance(selectors.get(key), bool):
-                branches = branches.split('|')
+                branches = branches.removeprefix('show:').split('|')
                 index = 0 if selectors[key] else 1
                 return branches[index] if index < len(branches) else ''
             # Handle conditional: {IfUpgraded:show:textA|textB}
@@ -514,9 +514,20 @@ def resolve_template(text, vars_dict):
         return f"[{key}]"
     return re.sub(r'\[([^\]]+)\]', replacer, text)
 
+def card_energy_cost(card, key="cost"):
+    """An X cost is not a free card; shop prices use a separate field."""
+    return "X" if card.get("costs_x") else card.get(key, "?")
+
+
+def card_display_name(card):
+    name = n(card.get("name"))
+    return name + ("+" if card.get("upgraded") and not name.endswith("+") else "")
+
+
 def card_desc(card):
     """Get resolved card description using stats as template vars."""
-    d = desc(card.get("description", {}), card.get("description_vars"))
+    selectors = {"IfUpgraded": card.get("upgraded", False), **(card.get("description_vars") or {})}
+    d = desc(card.get("description", {}), selectors)
     stats = card.get("stats") or {}
     return resolve_template(d, stats)  # always resolve (handles energyPrefix etc.)
 
@@ -680,7 +691,7 @@ def show_player(p, show_deck=False):
                 suf_part = format_card_suffix_keywords(suf)
                 rare = cd.get("rarity")
                 rare_part = f" {c(t(rare, RARITY_ZH.get(rare, rare)), 'dim')}" if rare else ""
-                print(f"    {n(cd['name'])}{up} ({cd.get('cost','?')}) {c(t(cd.get('type',''), ctype_zh), 'dim')}{rare_part}{suf_part}")
+                print(f"    {n(cd['name'])}{up} ({card_energy_cost(cd)}) {c(t(cd.get('type',''), ctype_zh), 'dim')}{rare_part}{suf_part}")
                 print_card_detail_extension(cd, indent="      ")
 
 def show_combat(state):
@@ -723,7 +734,7 @@ def show_combat(state):
 
     # Character-specific: Defect's Orbs
     orbs = state.get("orbs")
-    if orbs:
+    if orbs is not None:
         orb_icons = {"Lightning": "⚡", "Frost": "❄", "Dark": "🌑", "Plasma": "🔆", "Glass": "💠"}
         orb_parts = []
         for orb in orbs:
@@ -802,7 +813,7 @@ def show_combat(state):
     print()
     hand = state.get("hand", [])
     for card in hand:
-        cost = card.get("cost", 0)
+        cost = card_energy_cost(card)
         playable = card.get("can_play", False)
         ctype = card.get("type", "?")
         target = card.get("target_type", "")
@@ -824,7 +835,7 @@ def show_combat(state):
         ench = card.get("enchantment")
         ench_str = f" {c(n(ench), 'magenta')}" if ench else ""
 
-        print(f"  {mark} [{card['index']}] {c(n(card['name']), type_color)}{ench_str} ({cost_str}) {stat_str}{suf_part}"
+        print(f"  {mark} [{card['index']}] {c(card_display_name(card), type_color)}{ench_str} ({cost_str}) {stat_str}{suf_part}"
               + (f"  {c('→','yellow')}" if target == "AnyEnemy" else ""))
 
         print_card_detail_extension(card, indent="      ")
@@ -868,7 +879,7 @@ def _format_upgrade_preview(stats, aug, current_cost=None):
     aug_stats = aug.get("stats") or {}
     parts = []
     # Cost change
-    aug_cost = aug.get("cost")
+    aug_cost = card_energy_cost(aug)
     if current_cost is not None and aug_cost is not None and aug_cost != current_cost:
         parts.append(c(f"{t('cost','费用')} {current_cost}→{aug_cost}", "green"))
     # Compare all stats, show changed values with readable names
@@ -897,7 +908,7 @@ def print_card_detail_extension(card, indent="      "):
         if line:
             print(f"{indent}{c(line, 'dim')}")
     stats = card.get("stats") or {}
-    aug_parts = _format_upgrade_preview(stats, card.get("after_upgrade"), card.get("cost"))
+    aug_parts = _format_upgrade_preview(stats, card.get("after_upgrade"), card_energy_cost(card, "card_cost" if "card_cost" in card else "cost"))
     if aug_parts:
         print(f"{indent}{c(t('upgrade:','升级:'), 'green')} {', '.join(aug_parts)}")
 
@@ -925,14 +936,14 @@ def show_card_reward(state):
     for card in cards:
         ctype = card.get("type", "?")
         rarity = card.get("rarity", "Common")
-        cost = card.get("cost", "?")
+        cost = card_energy_cost(card)
         type_color = {"Attack": "red", "Skill": "blue", "Power": "magenta"}.get(ctype, "reset")
         rarity_zh = RARITY_ZH.get(rarity, rarity)
         rarity_label = t(rarity, rarity_zh)
         rarity_color = {"Rare": "yellow", "Uncommon": "cyan"}.get(rarity, "dim")
         _pre, suf = split_card_keywords(card.get("keywords"))
         suf_part = format_card_suffix_keywords(suf)
-        print(f"  [{card['index']}] {c(n(card['name']), type_color)} ({cost}) {c(rarity_label, rarity_color)}{suf_part}")
+        print(f"  [{card['index']}] {c(card_display_name(card), type_color)} ({cost}) {c(rarity_label, rarity_color)}{suf_part}")
         print_card_detail_extension(card, indent="      ")
 
     print()
@@ -955,10 +966,10 @@ def show_shop(state):
         affordable = c(str(cost), "green") if cost <= gold else c(str(cost), "red")
         sale = c(t(" SALE"," 打折"), "yellow") if card.get("on_sale") else ""
         ctype_zh = CARD_TYPE_ZH.get(card.get("type",""), card.get("type",""))
-        cc = card.get("card_cost", "?")
+        cc = card_energy_cost(card, "card_cost")
         _pre, suf = split_card_keywords(card.get("keywords"))
         suf_part = format_card_suffix_keywords(suf)
-        print(f"  [{card['index']}] {n(card['name'])} ({cc}) {c(t(card.get('type','?'), ctype_zh), 'dim')}{suf_part} — {affordable}{t('g','金')}{sale}")
+        print(f"  [{card['index']}] {card_display_name(card)} ({cc}) {c(t(card.get('type','?'), ctype_zh), 'dim')}{suf_part} — {affordable}{t('g','金')}{sale}")
         print_card_detail_extension(card, indent="      ")
 
     print(f"\n  {c(t('Relics:','遗物:'), 'bold')}")
@@ -1844,7 +1855,7 @@ def play(character="Ironclad", seed=None, auto=False, ascension=0, log=True,
                     for cd in b.get("cards", []):
                         _p, sf = split_card_keywords(cd.get("keywords"))
                         sp = format_card_suffix_keywords(sf)
-                        print(f"    {n(cd['name'])} ({cd.get('cost','?')}) {c(cd.get('type',''), 'dim')}{sp}")
+                        print(f"    {card_display_name(cd)} ({card_energy_cost(cd)}) {c(cd.get('type',''), 'dim')}{sp}")
                         print_card_detail_extension(cd, indent="      ")
                 valid = {str(b["index"]): b for b in bundles}
                 if auto:
@@ -1873,7 +1884,7 @@ def play(character="Ironclad", seed=None, auto=False, ascension=0, log=True,
                     rare_part = f" {c(t(rare, RARITY_ZH.get(rare, rare)), 'dim')}" if rare else ""
                     _p, sf = split_card_keywords(cd.get("keywords"))
                     sp = format_card_suffix_keywords(sf)
-                    print(f"  [{cd['index']}] {n(cd['name'])}{up} ({cd.get('cost','?')}) {c(ctype_label, 'dim')}{rare_part}{sp}")
+                    print(f"  [{cd['index']}] {n(cd['name'])}{up} ({card_energy_cost(cd)}) {c(ctype_label, 'dim')}{rare_part}{sp}")
                     print_card_detail_extension(cd, indent="      ")
 
                 valid = {str(cd["index"]): cd for cd in cards}

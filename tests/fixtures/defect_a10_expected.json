@@ -1,0 +1,737 @@
+{
+  "type": "decision",
+  "decision": "game_over",
+  "context": {
+    "act": 2,
+    "act_name": "Hive",
+    "floor": 14,
+    "room_type": "Elite",
+    "boss": {
+      "id": "THE_INSATIABLE_BOSS",
+      "name": "The Insatiable"
+    }
+  },
+  "victory": false,
+  "player": {
+    "name": "The Defect",
+    "hp": 0,
+    "max_hp": 75,
+    "block": 0,
+    "gold": 198,
+    "relics": [
+      {
+        "name": "Cracked Core",
+        "description": "At the start of each combat, Channel {Lightning} Lightning.",
+        "vars": {
+          "Lightning": 1
+        }
+      },
+      {
+        "name": "Arcane Scroll",
+        "description": "Upon pickup, obtain a random Rare Card to add to your Deck.",
+        "vars": {
+          "Cards": 1
+        }
+      },
+      {
+        "name": "Gorget",
+        "description": "At the start of each combat, gain {PlatingPower} Plating.",
+        "vars": {
+          "PlatingPower": 4
+        }
+      },
+      {
+        "name": "Meal Ticket",
+        "description": "Whenever you enter a shop room, heal {Heal} HP.",
+        "vars": {
+          "Heal": 15
+        }
+      },
+      {
+        "name": "Akabeko",
+        "description": "At the start of each combat, gain {VigorPower} Vigor.",
+        "vars": {
+          "VigorPower": 8
+        }
+      },
+      {
+        "name": "Pael's Tears",
+        "description": "If you end your turn with unspent {energyPrefix:energyIcons(1)}, gain an additional {Energy:energyIcons()} next turn.",
+        "vars": {
+          "Energy": 2
+        }
+      },
+      {
+        "name": "Unceasing Top",
+        "description": "Whenever you have no cards in Hand during your turn, draw a card.",
+        "vars": null
+      },
+      {
+        "name": "Juzu Bracelet",
+        "description": "Regular enemy combats are no longer encountered in ? rooms.",
+        "vars": null
+      }
+    ],
+    "potions": [],
+    "deck_size": 30,
+    "deck": [
+      {
+        "id": "CARD.STRIKE_DEFECT",
+        "name": "Strike",
+        "cost": 1,
+        "type": "Attack",
+        "upgraded": false,
+        "description": "Deal {Damage:diff()} damage.",
+        "stats": {
+          "damage": 6
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "damage": 9
+          },
+          "description": "Deal {Damage:diff()} damage.",
+          "added_keywords": null,
+          "removed_keywords": null,
+          "upgraded": true
+        }
+      },
+      {
+        "id": "CARD.STRIKE_DEFECT",
+        "name": "Strike",
+        "cost": 1,
+        "type": "Attack",
+        "upgraded": false,
+        "description": "Deal {Damage:diff()} damage.",
+        "stats": {
+          "damage": 6
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "damage": 9
+          },
+          "description": "Deal {Damage:diff()} damage.",
+          "added_keywords": null,
+          "removed_keywords": null,
+          "upgraded": true
+        }
+      },
+      {
+        "id": "CARD.DEFEND_DEFECT",
+        "name": "Defend",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Gain {Block:diff()} Block.",
+        "stats": {
+          "block": 5
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "block": 8
+          },
+          "description": "Gain {Block:diff()} Block.",
+          "added_keywords": null,
+          "removed_keywords": null,
+          "upgraded": true
+        }
+      },
+      {
+        "id": "CARD.DEFEND_DEFECT",
+        "name": "Defend",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Gain {Block:diff()} Block.",
+        "stats": {
+          "block": 5
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "block": 8
+          },
+          "description": "Gain {Block:diff()} Block.",
+          "added_keywords": null,
+          "removed_keywords": null,
+          "upgraded": true
+        }
+      },
+      {
+        "id": "CARD.DEFEND_DEFECT",
+        "name": "Defend",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Gain {Block:diff()} Block.",
+        "stats": {
+          "block": 5
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "block": 8
+          },
+          "description": "Gain {Block:diff()} Block.",
+          "added_keywords": null,
+          "removed_keywords": null,
+          "upgraded": true
+        }
+      },
+      {
+        "id": "CARD.DEFEND_DEFECT",
+        "name": "Defend",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Gain {Block:diff()} Block.",
+        "stats": {
+          "block": 5
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "block": 8
+          },
+          "description": "Gain {Block:diff()} Block.",
+          "added_keywords": null,
+          "removed_keywords": null,
+          "upgraded": true
+        }
+      },
+      {
+        "id": "CARD.ZAP",
+        "name": "Zap",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Channel 1 Lightning.",
+        "stats": null,
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 0,
+          "stats": null,
+          "description": "Channel 1 Lightning.",
+          "added_keywords": null,
+          "removed_keywords": null,
+          "upgraded": true
+        }
+      },
+      {
+        "id": "CARD.DUALCAST",
+        "name": "Dualcast",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Evoke your rightmost Orb twice.",
+        "stats": null,
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 0,
+          "stats": null,
+          "description": "Evoke your rightmost Orb twice.",
+          "added_keywords": null,
+          "removed_keywords": null,
+          "upgraded": true
+        }
+      },
+      {
+        "id": "CARD.ASCENDERS_BANE",
+        "name": "Ascender's Bane",
+        "cost": 0,
+        "type": "Curse",
+        "upgraded": false,
+        "description": "",
+        "stats": null,
+        "keywords": [
+          "Eternal",
+          "Unplayable",
+          "Ethereal"
+        ],
+        "after_upgrade": null
+      },
+      {
+        "id": "CARD.SIGNAL_BOOST",
+        "name": "Signal Boost",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "The next Power you play is played an additional time.",
+        "stats": {
+          "signalboostpower": 1
+        },
+        "keywords": [
+          "Exhaust"
+        ],
+        "after_upgrade": {
+          "cost": 0,
+          "stats": {
+            "signalboostpower": 1
+          },
+          "description": "The next Power you play is played an additional time.",
+          "added_keywords": null,
+          "removed_keywords": null,
+          "upgraded": true
+        }
+      },
+      {
+        "id": "CARD.GO_FOR_THE_EYES",
+        "name": "Go for the Eyes",
+        "cost": 0,
+        "type": "Attack",
+        "upgraded": false,
+        "description": "Deal {Damage:diff()} damage.\nIf the enemy intends to attack, apply {WeakPower:diff()} Weak.",
+        "stats": {
+          "damage": 3,
+          "weakpower": 1
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 0,
+          "stats": {
+            "damage": 4,
+            "weakpower": 2
+          },
+          "description": "Deal {Damage:diff()} damage.\nIf the enemy intends to attack, apply {WeakPower:diff()} Weak.",
+          "added_keywords": null,
+          "removed_keywords": null,
+          "upgraded": true
+        }
+      },
+      {
+        "id": "CARD.COLD_SNAP",
+        "name": "Cold Snap",
+        "cost": 1,
+        "type": "Attack",
+        "upgraded": false,
+        "description": "Deal {Damage:diff()} damage.\nChannel 1 Frost.",
+        "stats": {
+          "damage": 6
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "damage": 9
+          },
+          "description": "Deal {Damage:diff()} damage.\nChannel 1 Frost.",
+          "added_keywords": null,
+          "removed_keywords": null,
+          "upgraded": true
+        }
+      },
+      {
+        "id": "CARD.BALL_LIGHTNING",
+        "name": "Ball Lightning",
+        "cost": 1,
+        "type": "Attack",
+        "upgraded": false,
+        "description": "Deal {Damage:diff()} damage.\nChannel 1 Lightning.",
+        "stats": {
+          "damage": 7
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "damage": 10
+          },
+          "description": "Deal {Damage:diff()} damage.\nChannel 1 Lightning.",
+          "added_keywords": null,
+          "removed_keywords": null,
+          "upgraded": true
+        }
+      },
+      {
+        "id": "CARD.LIGHTNING_ROD",
+        "name": "Lightning Rod",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Gain {Block:diff()} Block.\nAt the start of the next {LightningRodPower:plural:turn|{:diff()} turns}, Channel 1 Lightning.",
+        "stats": {
+          "block": 4,
+          "lightningrodpower": 2
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "block": 7,
+            "lightningrodpower": 2
+          },
+          "description": "Gain {Block:diff()} Block.\nAt the start of the next {LightningRodPower:plural:turn|{:diff()} turns}, Channel 1 Lightning.",
+          "added_keywords": null,
+          "removed_keywords": null,
+          "upgraded": true
+        }
+      },
+      {
+        "id": "CARD.GLASSWORK",
+        "name": "Glasswork",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Gain {Block:diff()} Block.\nChannel 1 Glass.",
+        "stats": {
+          "block": 5
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "block": 8
+          },
+          "description": "Gain {Block:diff()} Block.\nChannel 1 Glass.",
+          "added_keywords": null,
+          "removed_keywords": null,
+          "upgraded": true
+        }
+      },
+      {
+        "id": "CARD.NULL",
+        "name": "Null",
+        "cost": 2,
+        "type": "Attack",
+        "upgraded": false,
+        "description": "Deal {Damage:diff()} damage.\nApply {WeakPower:diff()} Weak.\nChannel 1 Dark.",
+        "stats": {
+          "damage": 10,
+          "weakpower": 2
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 2,
+          "stats": {
+            "damage": 13,
+            "weakpower": 3
+          },
+          "description": "Deal {Damage:diff()} damage.\nApply {WeakPower:diff()} Weak.\nChannel 1 Dark.",
+          "added_keywords": null,
+          "removed_keywords": null,
+          "upgraded": true
+        }
+      },
+      {
+        "id": "CARD.CHARGE_BATTERY",
+        "name": "Charge Battery",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Gain {Block:diff()} Block.\nNext turn, gain {Energy:energyIcons()}.",
+        "stats": {
+          "block": 7,
+          "energy": 1
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "block": 10,
+            "energy": 1
+          },
+          "description": "Gain {Block:diff()} Block.\nNext turn, gain {Energy:energyIcons()}.",
+          "added_keywords": null,
+          "removed_keywords": null,
+          "upgraded": true
+        }
+      },
+      {
+        "id": "CARD.FOCUSED_STRIKE",
+        "name": "Focused Strike",
+        "cost": 1,
+        "type": "Attack",
+        "upgraded": false,
+        "description": "Deal {Damage:diff()} damage.\nGain {FocusPower:diff()} Focus this turn.",
+        "stats": {
+          "damage": 9,
+          "focuspower": 1
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "damage": 11,
+            "focuspower": 2
+          },
+          "description": "Deal {Damage:diff()} damage.\nGain {FocusPower:diff()} Focus this turn.",
+          "added_keywords": null,
+          "removed_keywords": null,
+          "upgraded": true
+        }
+      },
+      {
+        "id": "CARD.THUNDER",
+        "name": "Thunder",
+        "cost": 1,
+        "type": "Power",
+        "upgraded": false,
+        "description": "Whenever you Evoke Lightning, deal {ThunderPower:diff()} damage to each enemy hit.",
+        "stats": {
+          "thunderpower": 6
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "thunderpower": 8
+          },
+          "description": "Whenever you Evoke Lightning, deal {ThunderPower:diff()} damage to each enemy hit.",
+          "added_keywords": null,
+          "removed_keywords": null,
+          "upgraded": true
+        }
+      },
+      {
+        "id": "CARD.GLACIER",
+        "name": "Glacier",
+        "cost": 2,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Gain {Block:diff()} Block.\nChannel 2 Frost.",
+        "stats": {
+          "block": 6
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 2,
+          "stats": {
+            "block": 9
+          },
+          "description": "Gain {Block:diff()} Block.\nChannel 2 Frost.",
+          "added_keywords": null,
+          "removed_keywords": null,
+          "upgraded": true
+        }
+      },
+      {
+        "id": "CARD.CHAOS",
+        "name": "Chaos",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Channel {Repeat:diff()} random {Repeat:plural:Orb|Orbs}.",
+        "stats": {
+          "repeat": 1
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "repeat": 2
+          },
+          "description": "Channel {Repeat:diff()} random {Repeat:plural:Orb|Orbs}.",
+          "added_keywords": null,
+          "removed_keywords": null,
+          "upgraded": true
+        }
+      },
+      {
+        "id": "CARD.CLUMSY",
+        "name": "Clumsy",
+        "cost": 0,
+        "type": "Curse",
+        "upgraded": false,
+        "description": "",
+        "stats": null,
+        "keywords": [
+          "Unplayable",
+          "Ethereal"
+        ],
+        "after_upgrade": null
+      },
+      {
+        "id": "CARD.ECHO_FORM",
+        "name": "Echo Form",
+        "cost": 3,
+        "type": "Power",
+        "upgraded": false,
+        "description": "The first card you play each turn is played an extra time.",
+        "stats": {
+          "echoform": 1
+        },
+        "keywords": [
+          "Ethereal"
+        ],
+        "after_upgrade": {
+          "cost": 3,
+          "stats": {
+            "echoform": 1
+          },
+          "description": "The first card you play each turn is played an extra time.",
+          "added_keywords": null,
+          "removed_keywords": [
+            "Ethereal"
+          ],
+          "upgraded": true
+        }
+      },
+      {
+        "id": "CARD.GUNK_UP",
+        "name": "Gunk Up",
+        "cost": 1,
+        "type": "Attack",
+        "upgraded": true,
+        "description": "Deal {Damage:diff()} damage {Repeat:diff()} {Repeat:plural:time|times}.\nAdd a Slimed into your Discard Pile.",
+        "stats": {
+          "damage": 5,
+          "repeat": 3
+        },
+        "keywords": null,
+        "after_upgrade": null
+      },
+      {
+        "id": "CARD.HOLOGRAM",
+        "name": "Hologram",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Gain {Block:diff()} Block.\nPut a card from your Discard Pile into your Hand.",
+        "stats": {
+          "block": 3
+        },
+        "keywords": [
+          "Exhaust"
+        ],
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "block": 5
+          },
+          "description": "Gain {Block:diff()} Block.\nPut a card from your Discard Pile into your Hand.",
+          "added_keywords": null,
+          "removed_keywords": [
+            "Exhaust"
+          ],
+          "upgraded": true
+        }
+      },
+      {
+        "id": "CARD.ULTIMATE_STRIKE",
+        "name": "Ultimate Strike",
+        "cost": 1,
+        "type": "Attack",
+        "upgraded": false,
+        "description": "Deal {Damage:diff()} damage.",
+        "stats": {
+          "damage": 14
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "damage": 20
+          },
+          "description": "Deal {Damage:diff()} damage.",
+          "added_keywords": null,
+          "removed_keywords": null,
+          "upgraded": true
+        }
+      },
+      {
+        "id": "CARD.LOOP",
+        "name": "Loop",
+        "cost": 1,
+        "type": "Power",
+        "upgraded": false,
+        "description": "At the start of your turn, trigger the passive ability of your rightmost Orb{IfUpgraded:show: 2 times}.",
+        "stats": {
+          "loop": 1
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "loop": 2
+          },
+          "description": "At the start of your turn, trigger the passive ability of your rightmost Orb{IfUpgraded:show: 2 times}.",
+          "added_keywords": null,
+          "removed_keywords": null,
+          "upgraded": true
+        }
+      },
+      {
+        "id": "CARD.FTL",
+        "name": "FTL",
+        "cost": 0,
+        "type": "Attack",
+        "upgraded": false,
+        "description": "Deal {Damage:diff()} damage.\nIf you have played fewer than {PlayMax:diff()} cards this turn, draw 1 card.",
+        "stats": {
+          "damage": 5,
+          "playmax": 3,
+          "cards": 1
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 0,
+          "stats": {
+            "damage": 6,
+            "playmax": 4,
+            "cards": 1
+          },
+          "description": "Deal {Damage:diff()} damage.\nIf you have played fewer than {PlayMax:diff()} cards this turn, draw 1 card.",
+          "added_keywords": null,
+          "removed_keywords": null,
+          "upgraded": true
+        }
+      },
+      {
+        "id": "CARD.EXTERMINATE",
+        "name": "Exterminate",
+        "cost": 1,
+        "type": "Attack",
+        "upgraded": false,
+        "description": "Deal {Damage:diff()} damage to ALL enemies {Repeat:diff()} times.",
+        "stats": {
+          "damage": 3,
+          "repeat": 4
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "damage": 4,
+            "repeat": 4
+          },
+          "description": "Deal {Damage:diff()} damage to ALL enemies {Repeat:diff()} times.",
+          "added_keywords": null,
+          "removed_keywords": null,
+          "upgraded": true
+        }
+      },
+      {
+        "id": "CARD.COOLHEADED",
+        "name": "Coolheaded",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Channel 1 Frost.\nDraw {Cards:diff()} {Cards:plural:card|cards}.",
+        "stats": {
+          "cards": 1
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "cards": 2
+          },
+          "description": "Channel 1 Frost.\nDraw {Cards:diff()} {Cards:plural:card|cards}.",
+          "added_keywords": null,
+          "removed_keywords": null,
+          "upgraded": true
+        }
+      }
+    ]
+  },
+  "act": 2,
+  "floor": 14
+}

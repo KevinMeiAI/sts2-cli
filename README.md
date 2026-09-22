@@ -123,6 +123,12 @@ such as Block and Slippery. It is not a promise of how much HP the target will l
 
 ## A10 event coverage and known limits
 
+See [Defect A10 validation](docs/defect-a10-validation.md) for random seed
+`8J7GIO83BN`: Vantom defeated, then natural defeat at the Act 2 floor 14 elite.
+All five orb types were exercised. JSON now retains empty orb slots, describes
+live orb effects and exposes `costs_x` and `upgraded` consistently. The terminal
+renders X costs and upgraded card descriptions. Uproar previews both direct hits.
+
 See [Act 3 endings and fixes](docs/act3-validation.md) for these same saves through
 the final act: Ironclad A0 wins against Queen; Necrobinder A10 reaches Aeonglass
 and loses on round 8. Event combat now respects native reward suppression and

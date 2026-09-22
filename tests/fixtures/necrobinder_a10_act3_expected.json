@@ -145,7 +145,8 @@
           },
           "description": "Gain {Block:diff()} Block.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -166,7 +167,8 @@
           },
           "description": "Gain {Block:diff()} Block.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -187,7 +189,8 @@
           },
           "description": "Gain {Block:diff()} Block.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -221,7 +224,8 @@
           },
           "description": "Summon {Summon:diff()}.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -302,7 +306,8 @@
           },
           "description": "Deal {Damage:diff()} damage.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -327,7 +332,8 @@
           "added_keywords": [
             "Retain"
           ],
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -363,7 +369,8 @@
           },
           "description": "Gain {Block:diff()} Block.\nApply {DoomPower:diff()} Doom to ALL enemies.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -403,7 +410,8 @@
           "added_keywords": [
             "Retain"
           ],
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -424,7 +432,8 @@
           },
           "description": "At the start of your turn, apply {CountdownPower:diff()} Doom to a random enemy.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -445,7 +454,8 @@
           },
           "description": "Summon {Summon:diff()}.\nWhenever Osty loses HP,\nALL enemies lose that much HP as well.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -486,7 +496,8 @@
           },
           "description": "Deal {Damage:diff()} damage for each Ethereal card played this combat.{InCombat:\n(Hits {CalculatedHits:diff()} {CalculatedHits:plural:time|times})|}",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -522,7 +533,8 @@
           },
           "description": "Gain {Block:diff()} Block.\nAdd a Soul into your Draw Pile.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -543,7 +555,8 @@
           },
           "description": "Whenever you draw an Ethereal card, draw {Cards:diff()} {Cards:plural:card|cards}.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -566,7 +579,8 @@
           },
           "description": "Enemy loses {StrengthLoss:diff()} Strength this turn.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -633,7 +647,8 @@
           },
           "description": "If Osty is alive, he dies and you gain Block equal to double his Max HP.{InCombat:\n(Gain {IsOstyAlive:{CalculatedBlock:diff()}|0} Block)|}",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -667,7 +682,8 @@
           "added_keywords": [
             "Retain"
           ],
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -690,7 +706,8 @@
           },
           "description": "Gain {Block:diff()} Block.\nAdd a Soul into your Draw Pile.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -711,7 +728,8 @@
           },
           "description": "Whenever you apply Doom, gain {Block:diff()} Block.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -734,7 +752,8 @@
           },
           "description": "Gain {Block:diff()} Block.\nIf you applied Doom this turn, gain Block {Repeat:diff()} additional {Repeat:plural:time|times}.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -795,7 +814,8 @@
           "tinker_time": {
             "card_type": "Skill",
             "rider": "Energized"
-          }
+          },
+          "upgraded": true
         },
         "description_vars": {
           "CardType": "Skill",
@@ -838,7 +858,8 @@
           },
           "description": "Gain {Block:diff()} Block.\nApply {WeakPower:diff()} Weak.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -863,7 +884,8 @@
           "added_keywords": [
             "Retain"
           ],
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -887,7 +909,8 @@
           },
           "description": "Deal {Damage:diff()} damage to ALL enemies.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
@@ -908,7 +931,8 @@
           },
           "description": "Whenever you apply a debuff to an enemy, they take {SleightOfFleshPower:diff()} damage.",
           "added_keywords": null,
-          "removed_keywords": null
+          "removed_keywords": null,
+          "upgraded": true
         }
       },
       {
