@@ -242,6 +242,19 @@ def show_native_save(save_path):
         print(f"  {e}")
         sys.exit(1)
 
+    if data.get("format") == "sts2-cli-checkpoint":
+        state = data.get("expected_state", {})
+        start = data.get("commands", [{}])[0]
+        ctx = state.get("context", {})
+        player = state.get("player", {})
+        print(f"\n  {t('CLI Checkpoint', 'CLI 对局存档')}: {save_path}")
+        print(f"  {t('Seed', '种子')}: {start.get('seed', '?')}  "
+              f"{t('Ascension', '进阶')}: {start.get('ascension', '?')}")
+        print(f"  {t('Act', '幕')}: {ctx.get('act', '?')}  "
+              f"{t('Floor', '层')}: {ctx.get('floor', '?')}  "
+              f"HP: {player.get('hp', '?')}/{player.get('max_hp', '?')}")
+        return
+
     print(f"\n{'═' * 60}")
     print(f"  {t('Native Save File', '游戏原生存档')}")
     print(f"  {save_path}")
@@ -2096,12 +2109,12 @@ if __name__ == "__main__":
             for s in saves:
                 stype = s.get("type", "replay")
                 if stype == "native":
-                    print(f"  {s['file']}  [{t('native save','原生存档')}]")
+                    print(f"  {s['file']}  [{t('CLI / native save','CLI / 原生存档')}]")
                 else:
                     print(f"  {s['file']}  {s['character']}  {t('seed','种子')}:{s['seed']}  {t('actions','步操作')}:{s['actions']}")
             print(f"{'─' * 50}")
             print(f"  {t('Replay saves:','回放存档:')} python3 play.py --load saves/<file>")
-            print(f"  {t('Native saves:','原生存档:')} python3 play.py --continue saves/<file>")
+            print(f"  {t('CLI / native saves:','CLI / 原生存档:')} python3 play.py --continue saves/<file>")
         else:
             print(t("No saves found.", "没有找到存档。"))
         sys.exit(0)

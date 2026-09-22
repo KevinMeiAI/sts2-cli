@@ -714,15 +714,6 @@ public class RunSimulator
         }
     }
 
-    private static bool TrySetPropertyValue(object target, string propertyName, object? value)
-    {
-        var prop = target.GetType().GetProperty(propertyName);
-        if (prop?.CanWrite != true)
-            return false;
-        prop.SetValue(target, value);
-        return true;
-    }
-
     private static bool IsInitialNeowSave(string saveJson)
     {
         try
@@ -750,64 +741,7 @@ public class RunSimulator
         }
     }
 
-    private static bool TryRollbackSerializedSaveToPreRoom(SerializableRun serializableRun, out string error)
-    {
-        error = "";
-
-        var saveType = serializableRun.GetType();
-        var visitedProp = saveType.GetProperty("VisitedMapCoords");
-        if (visitedProp == null)
-        {
-            error = "Save data is missing VisitedMapCoords";
-            return false;
-        }
-
-        var visitedValue = visitedProp.GetValue(serializableRun);
-        var visitedItems = new List<object?>();
-        if (visitedValue is System.Collections.IEnumerable visitedEnumerable)
-        {
-            foreach (var item in visitedEnumerable)
-                visitedItems.Add(item);
-        }
-
-        if (visitedItems.Count == 0)
-        {
-            error = "Cannot roll back save before the first room";
-            return false;
-        }
-
-        visitedItems.RemoveAt(visitedItems.Count - 1);
-
-        var visitedType = visitedProp.PropertyType;
-        if (visitedType.IsArray)
-        {
-            var elementType = visitedType.GetElementType()!;
-            var array = Array.CreateInstance(elementType, visitedItems.Count);
-            for (int i = 0; i < visitedItems.Count; i++)
-                array.SetValue(visitedItems[i], i);
-            visitedProp.SetValue(serializableRun, array);
-        }
-        else if (visitedType.IsGenericType)
-        {
-            var elementType = visitedType.GetGenericArguments()[0];
-            var listType = typeof(List<>).MakeGenericType(elementType);
-            var list = (System.Collections.IList)Activator.CreateInstance(listType)!;
-            foreach (var item in visitedItems)
-                list.Add(item);
-            visitedProp.SetValue(serializableRun, list);
-        }
-        else
-        {
-            error = $"Unsupported VisitedMapCoords type: {visitedType.Name}";
-            return false;
-        }
-
-        TrySetPropertyValue(serializableRun, "ActFloor", visitedItems.Count);
-        TrySetPropertyValue(serializableRun, "CurrentMapCoord", visitedItems.Count > 0 ? visitedItems[^1] : null);
-        TrySetPropertyValue(serializableRun, "PreFinishedRoom", null);
-        TrySetPropertyValue(serializableRun, "CurrentRoom", null);
-        return true;
-    }
+    public Dictionary<string, object?> GetState() => DetectDecisionPoint();
 
     public Dictionary<string, object?> SaveCheckpoint(string? outputPath)
     {
@@ -829,10 +763,7 @@ public class RunSimulator
             }
             else
             {
-                Log($"Saving pre-room checkpoint from {currentRoom.GetType().Name} (outputPath={outputPath})...");
-                serializableRun = RunManager.Instance.ToSave(new MapRoom());
-                if (!TryRollbackSerializedSaveToPreRoom(serializableRun, out var rollbackError))
-                    return Error($"Cannot save checkpoint: {rollbackError}");
+                return Error("Native checkpoints require the map; use the CLI session checkpoint to preserve this decision");
             }
 
             var saveJson = SaveManager.ToJson(serializableRun);
@@ -1293,12 +1224,15 @@ public class RunSimulator
         var entry = allEntries[idx];
         if (!entry.IsStocked) return Error("Card already purchased");
         if (player.Gold < entry.Cost) return Error("Not enough gold");
+        var purchasedName = entry.CreationResult?.Card?.GetType().Name ?? "card";
+        var purchasedCost = entry.Cost;
 
         try
         {
-            entry.OnTryPurchaseWrapper(merchantRoom.GetLocalInventory()).GetAwaiter().GetResult();
+            if (!entry.OnTryPurchaseWrapper(merchantRoom.GetLocalInventory()).GetAwaiter().GetResult())
+                return Error("Card purchase was declined");
             _syncCtx.Pump();
-            Log($"Bought card: {entry.CreationResult?.Card?.GetType().Name ?? "?"} for {entry.Cost}g");
+            Log($"Bought card: {purchasedName} for {purchasedCost}g");
         }
         catch (Exception ex) { return Error($"Buy card failed: {ex.Message}"); }
 
@@ -1319,6 +1253,8 @@ public class RunSimulator
         var entry = entries[idx];
         if (!entry.IsStocked) return Error("Relic already purchased");
         if (player.Gold < entry.Cost) return Error("Not enough gold");
+        var purchasedName = entry.Model.GetType().Name;
+        var purchasedCost = entry.Cost;
 
         try
         {
@@ -1328,6 +1264,7 @@ public class RunSimulator
             // continues once the selector's TCS is fed by select_cards.
             var inv = merchantRoom.GetLocalInventory();
             var task = Task.Run(() => entry.OnTryPurchaseWrapper(inv));
+            _pendingShopPurchase = task;
             for (int i = 0; i < 100; i++)
             {
                 _syncCtx.Pump();
@@ -1338,12 +1275,14 @@ public class RunSimulator
             }
             if (_cardSelector.HasPending || _cardSelector.HasPendingReward || _pendingBundles != null)
             {
-                Log($"Buy relic {entry.Model.GetType().Name}: yielded for pending selection");
+                Log($"Buy relic {purchasedName}: yielded for pending selection");
                 return DetectDecisionPoint();
             }
-            if (!task.IsCompleted) task.Wait(2000);
+            if (!task.IsCompleted && !task.Wait(2000)) return Error("Relic purchase is still pending; query get_state");
+            var purchaseError = ObserveShopPurchase();
+            if (purchaseError != null) return purchaseError;
             _syncCtx.Pump();
-            Log($"Bought relic: {entry.Model.GetType().Name} for {entry.Cost}g");
+            Log($"Bought relic: {purchasedName} for {purchasedCost}g");
         }
         catch (Exception ex) { return Error($"Buy relic failed: {ex.Message}"); }
 
@@ -1364,17 +1303,19 @@ public class RunSimulator
         var entry = entries[idx];
         if (!entry.IsStocked) return Error("Potion already purchased");
         if (player.Gold < entry.Cost) return Error("Not enough gold");
+        var purchasedName = entry.Model.GetType().Name;
+        var purchasedCost = entry.Cost;
 
         try
         {
-            entry.OnTryPurchaseWrapper(merchantRoom.GetLocalInventory()).GetAwaiter().GetResult();
+            if (!entry.OnTryPurchaseWrapper(merchantRoom.GetLocalInventory()).GetAwaiter().GetResult())
+                return Error("Potion purchase was declined (check potion capacity)");
             _syncCtx.Pump();
-            Log($"Bought potion: {entry.Model.GetType().Name} for {entry.Cost}g");
+            Log($"Bought potion: {purchasedName} for {purchasedCost}g");
         }
         catch (Exception ex)
         {
-            // Potion purchase sometimes NullRefs in headless (missing potion slot UI)
-            Log($"Buy potion failed: {ex.Message}");
+            return ErrorWithTrace("Buy potion failed", ex);
         }
 
         return DetectDecisionPoint();
@@ -1783,8 +1724,21 @@ public class RunSimulator
 
     #region Decision Point Detection
 
+    private Task<bool>? _pendingShopPurchase;
+
+    private Dictionary<string, object?>? ObserveShopPurchase()
+    {
+        if (_pendingShopPurchase?.IsCompleted != true) return null;
+        var task = _pendingShopPurchase;
+        _pendingShopPurchase = null;
+        try { return task.GetAwaiter().GetResult() ? null : Error("Shop purchase was declined"); }
+        catch (Exception ex) { return ErrorWithTrace("Shop purchase failed", ex); }
+    }
+
     private Dictionary<string, object?> DetectDecisionPoint()
     {
+        var purchaseError = ObserveShopPurchase();
+        if (purchaseError != null) return purchaseError;
         if (_runState == null)
             return Error("No run in progress");
 
@@ -2166,6 +2120,8 @@ public class RunSimulator
                         if (repeat == 1 && c.Id.Entry == "DISMANTLE" && tgt.Powers != null
                             && tgt.Powers.Any(p => p?.Id.Entry == "VULNERABLE_POWER"))
                             repeat = 2;
+                        // Twin Strike's fixed hit count is in OnPlay, not a DynamicVar.
+                        if (c.Id.Entry == "TWIN_STRIKE") repeat = 2;
 
                         var row = new Dictionary<string, object?>
                         {
@@ -2173,11 +2129,11 @@ public class RunSimulator
                             ["name"] = _loc.Monster(tgt.Monster?.Id.Entry ?? "UNKNOWN"),
                         };
                         if (perHit != null) row["damage"] = perHit;
-                        if (repeat > 1)
-                        {
-                            row["repeat"] = repeat;
-                            if (perHit != null) row["total_damage"] = perHit * repeat;
-                        }
+                        row["repeat"] = repeat;
+                        if (perHit != null) row["total_damage"] = perHit * repeat;
+                        // Preview damage is not guaranteed HP loss: Block and powers such as
+                        // Slippery are applied by the engine when each hit resolves.
+                        row["damage_scope"] = "attack_preview_before_hp_loss_modifiers";
                         damageByTarget.Add(row);
                     }
                     catch { }
@@ -2706,6 +2662,9 @@ public class RunSimulator
         };
     }
 
+    private static Dictionary<string, object?> SoldOutSlot(int index) =>
+        new() { ["index"] = index, ["is_stocked"] = false };
+
     private Dictionary<string, object?> ShopState(MerchantRoom merchantRoom, Player player)
     {
         var inv = merchantRoom.GetLocalInventory();
@@ -2714,6 +2673,7 @@ public class RunSimulator
         var cards = inv.CharacterCardEntries.Concat(inv.ColorlessCardEntries)
             .Select((e, i) =>
             {
+                if (!e.IsStocked) return SoldOutSlot(i);
                 var card = e.CreationResult?.Card;
                 var entry = card?.Id.Entry ?? "?";
                 var stats = new Dictionary<string, object?>();
@@ -2755,7 +2715,7 @@ public class RunSimulator
                 };
             }).ToList();
 
-        var relics = inv.RelicEntries.Select((e, i) => new Dictionary<string, object?>
+        var relics = inv.RelicEntries.Select((e, i) => !e.IsStocked ? SoldOutSlot(i) : new Dictionary<string, object?>
         {
             ["index"] = i,
             ["name"] = _loc.Relic(e.Model?.Id.Entry ?? "?"),
@@ -2764,7 +2724,7 @@ public class RunSimulator
             ["is_stocked"] = e.IsStocked,
         }).ToList();
 
-        var potions = inv.PotionEntries.Select((e, i) => new Dictionary<string, object?>
+        var potions = inv.PotionEntries.Select((e, i) => !e.IsStocked ? SoldOutSlot(i) : new Dictionary<string, object?>
         {
             ["index"] = i,
             ["name"] = _loc.Potion(e.Model?.Id.Entry ?? "?"),

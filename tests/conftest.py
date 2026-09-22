@@ -4,6 +4,7 @@ import json
 import os
 import shutil
 import subprocess
+import threading
 import pytest
 
 DOTNET = os.path.expanduser("~/.dotnet-arm64/dotnet")
@@ -26,6 +27,10 @@ class Game:
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             text=True, bufsize=1, env=env,
         )
+        self.stderr_lines = []
+        self.stderr_thread = threading.Thread(
+            target=lambda: self.stderr_lines.extend(self.proc.stderr), daemon=True)
+        self.stderr_thread.start()
         ready = self._read()
         assert ready.get("type") == "ready", f"Expected ready, got: {ready}"
 
@@ -67,16 +72,27 @@ class Game:
         return self.send({"cmd": "set_draw_order", "cards": cards})
 
     def close(self):
+        if getattr(self, "_closed", False):
+            return
+        self._closed = True
         try:
-            self.proc.stdin.write('{"cmd":"quit"}\n')
-            self.proc.stdin.flush()
+            if self.proc.poll() is None:
+                self.proc.stdin.write('{"cmd":"quit"}\n')
+                self.proc.stdin.flush()
+                self.proc.wait(timeout=5)
         except Exception:
-            pass
-        try:
             self.proc.terminate()
-            self.proc.wait(timeout=5)
-        except Exception:
-            self.proc.kill()
+            try:
+                self.proc.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                self.proc.kill()
+                self.proc.wait(timeout=5)
+        self.stderr_thread.join(timeout=2)
+        for stream in (self.proc.stdin, self.proc.stdout, self.proc.stderr):
+            try:
+                stream.close()
+            except (BrokenPipeError, OSError):
+                pass
 
     # --- Auto-play helpers ---
 

@@ -72,7 +72,7 @@ class Program
             return null;
         };
 
-        var sim = new RunSimulator();
+        var session = new CommandSession(libDir);
         WriteLine(new Dictionary<string, object?> { ["type"] = "ready", ["version"] = "0.2.0" });
 
         string? line;
@@ -85,7 +85,7 @@ class Program
             try
             {
                 var cmd = JsonSerializer.Deserialize<JsonElement>(line);
-                result = HandleCommand(sim, cmd);
+                result = session.Execute(cmd);
             }
             catch (JsonException ex)
             {
@@ -108,7 +108,7 @@ class Program
         }
     }
 
-    static Dictionary<string, object?>? HandleCommand(RunSimulator sim, JsonElement cmd)
+    internal static Dictionary<string, object?>? HandleCommand(RunSimulator sim, JsonElement cmd)
     {
         var cmdType = cmd.GetProperty("cmd").GetString() ?? "";
         switch (cmdType)
@@ -160,6 +160,8 @@ class Program
             }
             case "get_map":
                 return sim.GetFullMap();
+            case "get_state":
+                return sim.GetState();
 
             case "set_player":
             {

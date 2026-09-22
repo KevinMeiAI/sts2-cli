@@ -93,6 +93,11 @@ def _collect_save_entries() -> list[dict]:
                 pl = data.get("players", [])
                 if pl:
                     char_id = pl[0].get("character_id", "?")
+                if data.get("format") == "sts2-cli-checkpoint":
+                    start = data.get("commands", [{}])[0]
+                    seed = start.get("seed", "?")
+                    asc = start.get("ascension", 0)
+                    char_id = start.get("character", "?").upper()
                 out.append({
                     "kind": "native",
                     "path": path,
@@ -160,7 +165,7 @@ def _menu_load_save(titles: dict[str, str], lang: str) -> None:
         return
 
     print("\n── 读取存档（按修改时间从新到旧）──")
-    print("  [继续游戏] = 游戏原生 .save")
+    print("  [继续游戏] = CLI 对局存档或游戏原生 .save")
     print("  [操作回放] = 对局内 save 命令生成的 .json\n")
     for i, e in enumerate(entries, 1):
         tag = "继续游戏" if e["kind"] == "native" else "操作回放"

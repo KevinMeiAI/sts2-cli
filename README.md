@@ -97,6 +97,30 @@ dotnet run --project src/Sts2Headless/Sts2Headless.csproj
 
 Each command returns a JSON decision point (`map_select` / `combat_play` / `card_reward` / `rest_site` / `event_choice` / `shop` / `game_over`). All names are in English.
 
+## Exact CLI checkpoints
+
+`write_continue_save` and `quit` with a `path` now write a versioned CLI checkpoint.
+It stores the concrete seed, game commands, engine fingerprint, and full expected
+state. `load_save` replays those commands and verifies that the exact saved decision
+was restored, including combat turns, pending card choices, and Boss rewards.
+Engine mismatches and replay divergence are explicit errors. Restore takes time
+proportional to the recorded commands. Existing native game saves remain readable.
+These CLI checkpoint files are not Steam game save files.
+
+```json
+{"cmd":"get_state"}
+{"cmd":"write_continue_save","path":"saves/act1.save"}
+{"cmd":"load_save","path":"saves/act1.save"}
+```
+
+中文：现在可以在战斗、选牌或 Boss 奖励界面精确保存。读取时会重放并核对完整状态；
+引擎不匹配或状态发生偏差会明确报错。此存档供 CLI 使用，不可放入 Steam 游戏存档目录。
+
+Shop sold-out slots retain their index and `is_stocked: false`, with no fake name
+or price. Clients should filter on `is_stocked`. Attack `damage_by_target` includes
+`repeat` and `total_damage`; it previews attack damage before final HP-loss modifiers
+such as Block and Slippery. It is not a promise of how much HP the target will lose.
+
 ## Game Logs
 
 Every run is automatically logged to `logs/` as a JSONL file (one JSON per line), recording each game state and action with timestamps. Logs older than 7 days are cleaned up automatically.

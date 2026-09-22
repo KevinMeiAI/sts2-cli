@@ -69,3 +69,17 @@ compiler warnings and unregistered pytest `slow` marker are non-failing warnings
 
 Steam 更新游戏后，需要重新确认接口兼容性，再运行 `./sts2 setup` 并复测。
 通用错误修复和 v0.107.1 专属兼容修改分别保存为独立提交，便于后续向上游贡献。
+
+## First-act follow-up fixes
+
+A manually played Ironclad run (`6BMMPCFQAJ`, ascension 0) exposed purchase
+feedback and checkpoint bugs missed by the initial batch policy. The follow-up
+fixes cache purchase receipt data, observe purchase results, represent sold-out
+slots explicitly, and export Twin Strike hit counts. CLI checkpoints now replay
+recorded commands and compare the complete saved state before reporting success.
+
+Validation: 81 pytest tests passed, including the recorded first act, duplicate
+purchases, full potion capacity, combat/pending-choice/Boss-reward checkpoints,
+engine mismatch, replay divergence, and failed-save behavior. The required five
+runs per each of the five characters also completed (25 defeats, no diagnostic
+errors). These batch runs remain execution checks, not model-driven gameplay.
