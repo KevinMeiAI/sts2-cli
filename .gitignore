@@ -13,3 +13,12 @@ obj/
 .obsidian/
 logs/
 saves/*
+
+# Local SDKs, Python environments, and machine-specific installation outputs
+.runtime/
+.venv/
+.pytest_cache/
+verification/
+/安装记录.json
+/使用说明.md
+/本地兼容修复.patch

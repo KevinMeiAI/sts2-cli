@@ -1,0 +1,40 @@
+#!/bin/bash
+set -euo pipefail
+
+STS2_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -x "$STS2_ROOT/.runtime/dotnet/dotnet" ]; then
+    export DOTNET_ROOT="$STS2_ROOT/.runtime/dotnet"
+    export PATH="$DOTNET_ROOT:$PATH"
+elif ! command -v dotnet >/dev/null 2>&1; then
+    for STS2_DOTNET_DIR in "$HOME/.dotnet-arm64" "$HOME/.dotnet"; do
+        if [ -x "$STS2_DOTNET_DIR/dotnet" ]; then
+            export DOTNET_ROOT="$STS2_DOTNET_DIR"
+            export PATH="$DOTNET_ROOT:$PATH"
+            break
+        fi
+    done
+fi
+export DOTNET_CLI_HOME="$STS2_ROOT/.runtime/dotnet-cli-home"
+export NUGET_PACKAGES="$STS2_ROOT/.runtime/nuget-packages"
+export DOTNET_CLI_TELEMETRY_OPTOUT=1
+export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
+export DOTNET_NOLOGO=1
+export PATH="$STS2_ROOT/.venv/bin:$PATH"
+cd "$STS2_ROOT"
+
+STS2_MODE="${1:-play}"
+if [ "$#" -gt 0 ]; then shift; fi
+case "$STS2_MODE" in
+    play)   exec python3 python/play.py "$@" ;;
+    menu)   exec python3 launch.py "$@" ;;
+    json)   exec dotnet src/Sts2Headless/bin/Debug/net9.0/Sts2Headless.dll "$@" ;;
+    bridge) exec python3 agent/sts2_bridge.py "$@" ;;
+    check)  exec python3 python/play_full_run.py "$@" ;;
+    test)   exec python3 -m pytest "$@" ;;
+    setup)  exec bash setup.sh "$@" ;;
+    build)  exec dotnet build src/Sts2Headless/Sts2Headless.csproj "$@" ;;
+    *)
+        echo "Usage: $0 {play|menu|json|bridge|check|test|setup|build} [arguments]" >&2
+        exit 2
+        ;;
+esac

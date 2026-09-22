@@ -1,11 +1,29 @@
 # sts2-cli
 
+Fork of [wuhao21/sts2-cli](https://github.com/wuhao21/sts2-cli), maintained under
+[KevinMeiAI](https://github.com/KevinMeiAI). The default `compat/v0.107.1` branch
+contains tested fixes for terminal agents and the v0.107.1 game engine.
+[Compatibility details and verification](docs/compatibility-v0.107.1.md).
+
+本 Fork 的默认分支适配 **v0.107.1**，包含 agent 控制流程修复。
+完成安装后，可以运行 `./sts2 menu`，或双击 `启动游戏.command` 进入中文菜单。
+
+```bash
+./sts2 setup         # first-time setup; requires the game, Python, and .NET SDK
+./sts2 play          # interactive terminal game
+./sts2 json          # persistent JSON stdin/stdout for coding agents
+./sts2 bridge 9876   # HTTP commands on http://127.0.0.1:9876
+```
+
+The launcher uses a project-local `.runtime/dotnet` SDK when present, otherwise
+the SDK on PATH or in `~/.dotnet-arm64` / `~/.dotnet`. No SDK or game DLLs are bundled.
+
 <details open>
 <summary><b>English</b></summary>
 
 A CLI for Slay the Spire 2.
 
-Runs the real game engine headless in your terminal — all damage, card effects, enemy AI, relics, and RNG are identical to the actual game. Everything is unlocked from the start: all characters, cards, relics, potions, and ascension levels — no timeline progression required.
+Runs the real game engine headless in your terminal through an adapter that replaces rendering and UI interactions. Everything is unlocked from the start: all characters, cards, relics, potions, and ascension levels — no timeline progression required. See the compatibility report for the tested version and coverage.
 
 ![demo](docs/demo_en.gif)
 
@@ -17,17 +35,17 @@ Requirements:
 - Python 3.9+
 
 ```bash
-git clone https://github.com/wuhao21/sts2-cli.git
+git clone https://github.com/KevinMeiAI/sts2-cli.git
 cd sts2-cli
 ./setup.sh      # copies DLLs from Steam → IL patches → builds
 ```
 
 Or just run `python3 python/play.py` — it auto-detects and sets up on first run.
 
-Tested with **v0.111.0 (Steam public-beta, build 24724944)**. After updating the
-installed game in Steam, rerun `./setup.sh` to refresh the engine DLLs, patches,
-and official English/Chinese localization, then rebuild. Other game versions
-may require adapter changes.
+This branch is tested with **v0.107.1 (Steam build 23811903)**. After updating the
+installed game in Steam, check adapter compatibility before rerunning `./sts2 setup`
+to refresh the engine DLLs, patches, and official English/Chinese localization.
+Other game versions may require code changes.
 
 For a compatibility check, run `python3 python/play_full_run.py 5 Ironclad`
 (repeat for Silent, Defect, Regent, and Necrobinder). A completed run reaches
@@ -120,7 +138,7 @@ sts2.dll (game engine, IL patched)
 
 杀戮尖塔2的命令行版本。
 
-在终端里运行真实游戏引擎 — 所有伤害计算、卡牌效果、敌人AI、遗物触发、随机数都和真实游戏一致。所有内容从一开始就全部解锁：全角色、全卡牌、全遗物、全药水、全渐进难度等级，无需时间线进度。
+在终端里运行真实游戏引擎，通过适配层替代画面与界面交互。所有内容从一开始就全部解锁：全角色、全卡牌、全遗物、全药水、全渐进难度等级，无需时间线进度。已验证的版本与覆盖范围见兼容性报告。
 
 ![demo](docs/demo_zh.gif)
 
@@ -132,15 +150,15 @@ sts2.dll (game engine, IL patched)
 - Python 3.9+
 
 ```bash
-git clone https://github.com/wuhao21/sts2-cli.git
+git clone https://github.com/KevinMeiAI/sts2-cli.git
 cd sts2-cli
 ./setup.sh      # 从 Steam 复制 DLL → IL patch → 编译
 ```
 
 或者直接运行 `python3 python/play.py`，首次会自动完成 setup。
 
-已验证 **v0.111.0（Steam public-beta，构建 24724944）**。通过 Steam 更新游戏后，
-请重新运行 `./setup.sh`，同步游戏 DLL、补丁和官方中英文文本并重新编译。
+本分支已验证 **v0.107.1（Steam 构建 23811903）**。通过 Steam 更新游戏后，
+请先检查接口兼容性，再运行 `./sts2 setup`，同步游戏 DLL、补丁和官方中英文文本。
 其他游戏版本可能需要修改适配代码。
 
 可运行 `python3 python/play_full_run.py 5 Ironclad` 检查兼容性，并依次替换为
