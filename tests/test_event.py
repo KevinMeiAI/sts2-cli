@@ -29,6 +29,20 @@ class TestNeowEvent:
         assert state.get("decision") is not None
 
 
+def test_two_card_event_rejects_incomplete_selection(game):
+    state = game.start(character="Defect", seed="cheese_selection")
+    game.skip_neow(state)
+    state = game.enter_room("event", event="ROOM_FULL_OF_CHEESE")
+    state = game.act("choose_option", option_index=0)
+    assert state["decision"] == "card_select"
+    assert state["min_select"] == state["max_select"] == 2
+    assert game.act("select_cards", indices="0")["type"] == "error"
+    assert game.act("skip_select")["type"] == "error"
+    assert game.act("select_cards", indices="0,0")["type"] == "error"
+    state = game.act("select_cards", indices="0,1")
+    assert state.get("type") != "error", state
+
+
 class TestEventDescriptions:
     def test_no_ismultiplayer_tag(self, game):
         state = game.start(seed="ed1")
