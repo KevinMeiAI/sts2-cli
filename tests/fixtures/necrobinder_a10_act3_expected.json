@@ -1,0 +1,932 @@
+{
+  "type": "decision",
+  "decision": "game_over",
+  "context": {
+    "act": 3,
+    "act_name": "Glory",
+    "floor": 15,
+    "room_type": "Boss",
+    "boss": {
+      "id": "AEONGLASS_BOSS",
+      "name": "Aeonglass"
+    }
+  },
+  "victory": false,
+  "player": {
+    "name": "The Necrobinder",
+    "hp": 0,
+    "max_hp": 66,
+    "block": 0,
+    "gold": 110,
+    "relics": [
+      {
+        "name": "Bound Phylactery",
+        "description": "At the start of your turn, Summon {Summon}.",
+        "vars": {
+          "Summon": 1
+        }
+      },
+      {
+        "name": "Silver Crucible",
+        "description": "The first {Cards} card rewards you see are Upgraded. The first Treasure Chest you open is empty.",
+        "vars": {
+          "Cards": 3
+        }
+      },
+      {
+        "name": "Chandelier",
+        "description": "At the start of your 3rd turn, gain {Energy:energyIcons()}.",
+        "vars": {
+          "Energy": 3
+        }
+      },
+      {
+        "name": "Candelabra",
+        "description": "At the start of your 2nd turn, gain {Energy:energyIcons()}.",
+        "vars": {
+          "Energy": 2
+        }
+      },
+      {
+        "name": "Joss Paper",
+        "description": "Every {ExhaustAmount} times you Exhaust a card, draw {Cards} {Cards:plural:card|cards}.",
+        "vars": {
+          "ExhaustAmount": 5,
+          "Cards": 1
+        }
+      },
+      {
+        "name": "Astrolabe",
+        "description": "Upon pickup, Transform {Cards} {Cards:plural:card|cards}, then Upgrade them.",
+        "vars": {
+          "Cards": 3
+        }
+      },
+      {
+        "name": "Beating Remnant",
+        "description": "You cannot lose more than 20 HP in a single turn.",
+        "vars": {
+          "MaxHpLoss": 20
+        }
+      },
+      {
+        "name": "Signet Ring",
+        "description": "Upon pickup, gain {Gold} Gold.",
+        "vars": {
+          "Gold": 999
+        }
+      },
+      {
+        "name": "Membership Card",
+        "description": "{Discount}% discount on all products!",
+        "vars": {
+          "Discount": 50
+        }
+      },
+      {
+        "name": "Oddly Smooth Stone",
+        "description": "Start each combat with {DexterityPower} Dexterity.",
+        "vars": {
+          "DexterityPower": 1
+        }
+      },
+      {
+        "name": "Sturdy Clamp",
+        "description": "Up to {Block} Block persists across turns.",
+        "vars": {
+          "Block": 10
+        }
+      },
+      {
+        "name": "Ghost Seed",
+        "description": "Strikes and Defends gain Ethereal.",
+        "vars": null
+      },
+      {
+        "name": "The Courier",
+        "description": "The merchant no longer runs out of cards, relics, or potions and his prices are reduced by {Discount}%.",
+        "vars": {
+          "Discount": 20
+        }
+      },
+      {
+        "name": "Centennial Puzzle",
+        "description": "The first time you lose HP each combat, draw {Cards} {Cards:plural:card|cards}.",
+        "vars": {
+          "Cards": 3
+        }
+      },
+      {
+        "name": "Pantograph",
+        "description": "At the start of each Boss combat, heal {Heal} HP.",
+        "vars": {
+          "Heal": 25
+        }
+      }
+    ],
+    "potions": [],
+    "deck_size": 38,
+    "deck": [
+      {
+        "id": "CARD.DEFEND_NECROBINDER",
+        "name": "Defend",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Gain {Block:diff()} Block.",
+        "stats": {
+          "block": 5
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "block": 8
+          },
+          "description": "Gain {Block:diff()} Block.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.DEFEND_NECROBINDER",
+        "name": "Defend",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Gain {Block:diff()} Block.",
+        "stats": {
+          "block": 5
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "block": 8
+          },
+          "description": "Gain {Block:diff()} Block.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.DEFEND_NECROBINDER",
+        "name": "Defend",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Gain {Block:diff()} Block.",
+        "stats": {
+          "block": 5
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "block": 8
+          },
+          "description": "Gain {Block:diff()} Block.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.DEFEND_NECROBINDER",
+        "name": "Defend",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": true,
+        "description": "Gain {Block:diff()} Block.",
+        "stats": {
+          "block": 8
+        },
+        "keywords": null,
+        "after_upgrade": null
+      },
+      {
+        "id": "CARD.BODYGUARD",
+        "name": "Bodyguard",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Summon {Summon:diff()}.",
+        "stats": {
+          "summon": 5
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "summon": 7
+          },
+          "description": "Summon {Summon:diff()}.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.UNLEASH",
+        "name": "Unleash",
+        "cost": 1,
+        "type": "Attack",
+        "upgraded": true,
+        "description": "Osty deals {CalculatedDamage:diff()} damage.\nDeals additional damage equal to Osty's current HP.",
+        "stats": {
+          "calculationbase": 9,
+          "extradamage": 1,
+          "calculateddamage": 9
+        },
+        "keywords": null,
+        "after_upgrade": null
+      },
+      {
+        "id": "CARD.ASCENDERS_BANE",
+        "name": "Ascender's Bane",
+        "cost": 0,
+        "type": "Curse",
+        "upgraded": false,
+        "description": "",
+        "stats": null,
+        "keywords": [
+          "Eternal",
+          "Unplayable",
+          "Ethereal"
+        ],
+        "after_upgrade": null
+      },
+      {
+        "id": "CARD.NEGATIVE_PULSE",
+        "name": "Negative Pulse",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": true,
+        "description": "Gain {Block:diff()} Block.\nApply {DoomPower:diff()} Doom to ALL enemies.",
+        "stats": {
+          "block": 6,
+          "doompower": 11
+        },
+        "keywords": null,
+        "after_upgrade": null
+      },
+      {
+        "id": "CARD.REAVE",
+        "name": "Reave",
+        "cost": 1,
+        "type": "Attack",
+        "upgraded": true,
+        "description": "Deal {Damage:diff()} damage.\nAdd a {IfUpgraded:show:Soul+|Soul} into your Draw Pile.",
+        "stats": {
+          "damage": 11,
+          "cards": 1
+        },
+        "keywords": null,
+        "after_upgrade": null
+      },
+      {
+        "id": "CARD.DEFILE",
+        "name": "Defile",
+        "cost": 1,
+        "type": "Attack",
+        "upgraded": false,
+        "description": "Deal {Damage:diff()} damage.",
+        "stats": {
+          "damage": 13
+        },
+        "keywords": [
+          "Ethereal"
+        ],
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "damage": 17
+          },
+          "description": "Deal {Damage:diff()} damage.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.WISP",
+        "name": "Wisp",
+        "cost": 0,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Gain {Energy:energyIcons()}.",
+        "stats": {
+          "energy": 1
+        },
+        "keywords": [
+          "Exhaust"
+        ],
+        "after_upgrade": {
+          "cost": 0,
+          "stats": {
+            "energy": 1
+          },
+          "description": "Gain {Energy:energyIcons()}.",
+          "added_keywords": [
+            "Retain"
+          ],
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.BLIGHT_STRIKE",
+        "name": "Blight Strike",
+        "cost": 1,
+        "type": "Attack",
+        "upgraded": true,
+        "description": "Deal {Damage:diff()} damage.\nApply Doom equal to damage dealt.",
+        "stats": {
+          "damage": 10
+        },
+        "keywords": null,
+        "after_upgrade": null
+      },
+      {
+        "id": "CARD.NEGATIVE_PULSE",
+        "name": "Negative Pulse",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Gain {Block:diff()} Block.\nApply {DoomPower:diff()} Doom to ALL enemies.",
+        "stats": {
+          "block": 5,
+          "doompower": 7
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "block": 6,
+            "doompower": 11
+          },
+          "description": "Gain {Block:diff()} Block.\nApply {DoomPower:diff()} Doom to ALL enemies.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.PUTREFY",
+        "name": "Putrefy",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": true,
+        "description": "Apply {Power:diff()} Weak.\nApply {Power:diff()} Vulnerable.",
+        "stats": {
+          "power": 3
+        },
+        "keywords": [
+          "Exhaust"
+        ],
+        "after_upgrade": null
+      },
+      {
+        "id": "CARD.WISP",
+        "name": "Wisp",
+        "cost": 0,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Gain {Energy:energyIcons()}.",
+        "stats": {
+          "energy": 1
+        },
+        "keywords": [
+          "Exhaust"
+        ],
+        "after_upgrade": {
+          "cost": 0,
+          "stats": {
+            "energy": 1
+          },
+          "description": "Gain {Energy:energyIcons()}.",
+          "added_keywords": [
+            "Retain"
+          ],
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.COUNTDOWN",
+        "name": "Countdown",
+        "cost": 1,
+        "type": "Power",
+        "upgraded": false,
+        "description": "At the start of your turn, apply {CountdownPower:diff()} Doom to a random enemy.",
+        "stats": {
+          "countdownpower": 6
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "countdownpower": 9
+          },
+          "description": "At the start of your turn, apply {CountdownPower:diff()} Doom to a random enemy.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.NECRO_MASTERY",
+        "name": "Necro Mastery",
+        "cost": 2,
+        "type": "Power",
+        "upgraded": false,
+        "description": "Summon {Summon:diff()}.\nWhenever Osty loses HP,\nALL enemies lose that much HP as well.",
+        "stats": {
+          "summon": 5
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 2,
+          "stats": {
+            "summon": 8
+          },
+          "description": "Summon {Summon:diff()}.\nWhenever Osty loses HP,\nALL enemies lose that much HP as well.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.REAVE",
+        "name": "Reave",
+        "cost": 1,
+        "type": "Attack",
+        "upgraded": true,
+        "description": "Deal {Damage:diff()} damage.\nAdd a {IfUpgraded:show:Soul+|Soul} into your Draw Pile.",
+        "stats": {
+          "damage": 11,
+          "cards": 1
+        },
+        "keywords": null,
+        "after_upgrade": null
+      },
+      {
+        "id": "CARD.PULL_FROM_BELOW",
+        "name": "Pull from Below",
+        "cost": 1,
+        "type": "Attack",
+        "upgraded": false,
+        "description": "Deal {Damage:diff()} damage for each Ethereal card played this combat.{InCombat:\n(Hits {CalculatedHits:diff()} {CalculatedHits:plural:time|times})|}",
+        "stats": {
+          "damage": 5,
+          "calculationbase": 0,
+          "calculationextra": 1,
+          "calculatedhits": 0
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "damage": 7,
+            "calculationbase": 0,
+            "calculationextra": 1,
+            "calculatedhits": 0
+          },
+          "description": "Deal {Damage:diff()} damage for each Ethereal card played this combat.{InCombat:\n(Hits {CalculatedHits:diff()} {CalculatedHits:plural:time|times})|}",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.BLIGHT_STRIKE",
+        "name": "Blight Strike",
+        "cost": 1,
+        "type": "Attack",
+        "upgraded": true,
+        "description": "Deal {Damage:diff()} damage.\nApply Doom equal to damage dealt.",
+        "stats": {
+          "damage": 10
+        },
+        "keywords": null,
+        "after_upgrade": null
+      },
+      {
+        "id": "CARD.GRAVE_WARDEN",
+        "name": "Grave Warden",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Gain {Block:diff()} Block.\nAdd a Soul into your Draw Pile.",
+        "stats": {
+          "block": 8,
+          "cards": 1
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "block": 11,
+            "cards": 1
+          },
+          "description": "Gain {Block:diff()} Block.\nAdd a Soul into your Draw Pile.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.PAGESTORM",
+        "name": "Pagestorm",
+        "cost": 1,
+        "type": "Power",
+        "upgraded": false,
+        "description": "Whenever you draw an Ethereal card, draw {Cards:diff()} {Cards:plural:card|cards}.",
+        "stats": {
+          "cards": 1
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 0,
+          "stats": {
+            "cards": 1
+          },
+          "description": "Whenever you draw an Ethereal card, draw {Cards:diff()} {Cards:plural:card|cards}.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.ENFEEBLING_TOUCH",
+        "name": "Enfeebling Touch",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Enemy loses {StrengthLoss:diff()} Strength this turn.",
+        "stats": {
+          "strengthloss": 8
+        },
+        "keywords": [
+          "Ethereal"
+        ],
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "strengthloss": 11
+          },
+          "description": "Enemy loses {StrengthLoss:diff()} Strength this turn.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.POKE",
+        "name": "Poke",
+        "cost": 0,
+        "type": "Attack",
+        "upgraded": true,
+        "description": "Osty deals {OstyDamage:diff()} damage.",
+        "stats": {
+          "ostydamage": 9
+        },
+        "keywords": null,
+        "after_upgrade": null
+      },
+      {
+        "id": "CARD.SHROUD",
+        "name": "Shroud",
+        "cost": 1,
+        "type": "Power",
+        "upgraded": true,
+        "description": "Whenever you apply Doom, gain {Block:diff()} Block.",
+        "stats": {
+          "block": 3
+        },
+        "keywords": null,
+        "after_upgrade": null
+      },
+      {
+        "id": "CARD.SCOURGE",
+        "name": "Scourge",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": true,
+        "description": "Apply {DoomPower:diff()} Doom.\nDraw {Cards:diff()} {Cards:plural:card|cards}.",
+        "stats": {
+          "doompower": 16,
+          "cards": 2
+        },
+        "keywords": null,
+        "after_upgrade": null
+      },
+      {
+        "id": "CARD.SACRIFICE",
+        "name": "Sacrifice",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "If Osty is alive, he dies and you gain Block equal to double his Max HP.{InCombat:\n(Gain {IsOstyAlive:{CalculatedBlock:diff()}|0} Block)|}",
+        "stats": {
+          "calculationbase": 0,
+          "calculationextra": 1,
+          "calculatedblock": 0
+        },
+        "keywords": [
+          "Retain"
+        ],
+        "after_upgrade": {
+          "cost": 0,
+          "stats": {
+            "calculationbase": 0,
+            "calculationextra": 1,
+            "calculatedblock": 0
+          },
+          "description": "If Osty is alive, he dies and you gain Block equal to double his Max HP.{InCombat:\n(Gain {IsOstyAlive:{CalculatedBlock:diff()}|0} Block)|}",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.CLEANSE",
+        "name": "Cleanse",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": true,
+        "description": "Summon {Summon:diff()}.\nExhaust 1 card from your Draw Pile.",
+        "stats": {
+          "summon": 5
+        },
+        "keywords": null,
+        "after_upgrade": null
+      },
+      {
+        "id": "CARD.SCRAWL",
+        "name": "Scrawl",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Draw cards until your Hand is full.",
+        "stats": null,
+        "keywords": [
+          "Exhaust"
+        ],
+        "after_upgrade": {
+          "cost": 1,
+          "stats": null,
+          "description": "Draw cards until your Hand is full.",
+          "added_keywords": [
+            "Retain"
+          ],
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.GRAVE_WARDEN",
+        "name": "Grave Warden",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Gain {Block:diff()} Block.\nAdd a Soul into your Draw Pile.",
+        "stats": {
+          "block": 8,
+          "cards": 1
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "block": 11,
+            "cards": 1
+          },
+          "description": "Gain {Block:diff()} Block.\nAdd a Soul into your Draw Pile.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.SHROUD",
+        "name": "Shroud",
+        "cost": 1,
+        "type": "Power",
+        "upgraded": false,
+        "description": "Whenever you apply Doom, gain {Block:diff()} Block.",
+        "stats": {
+          "block": 2
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "block": 3
+          },
+          "description": "Whenever you apply Doom, gain {Block:diff()} Block.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.DEATHS_DOOR",
+        "name": "Death's Door",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Gain {Block:diff()} Block.\nIf you applied Doom this turn, gain Block {Repeat:diff()} additional {Repeat:plural:time|times}.",
+        "stats": {
+          "block": 6,
+          "repeat": 2
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "block": 7,
+            "repeat": 2
+          },
+          "description": "Gain {Block:diff()} Block.\nIf you applied Doom this turn, gain Block {Repeat:diff()} additional {Repeat:plural:time|times}.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.MAD_SCIENCE",
+        "name": "Mad Science",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "{CardType:choose(Attack|Skill|Power):Deal {Damage:diff()} damage{Violence: {ViolenceHits:diff()} times|}.|Gain {Block:diff()} Block.||???}{HasRider:{Sapping:\nApply {SappingWeak:diff()} Weak.\nApply {SappingVulnerable:diff()} Vulnerable.|}{Choking:\nWhenever you play a card this turn, the enemy loses {ChokingDamage:diff()} HP.|}{Energized:\nGain {EnergizedEnergy:energyIcons()}.|}{Wisdom:\nDraw {WisdomCards:diff()} cards.|}{Chaos:\nAdd a random card into your Hand. It's free to play this turn.|}{Expertise:Gain {ExpertiseStrength:diff()} Strength.\nGain {ExpertiseDexterity:diff()} Dexterity.|}{Curious:Powers cost {CuriousReduction:diff()} {energyPrefix:energyIcons(1)} less.|}{Improvement:At the end of combat, Upgrade a random card.|}|{CardType:choose(Attack|Skill|Power):\n???|\n???|???|???}}",
+        "stats": {
+          "damage": 12,
+          "block": 8,
+          "sappingweak": 2,
+          "sappingvulnerable": 2,
+          "violencehits": 3,
+          "chokingdamage": 6,
+          "energizedenergy": 2,
+          "wisdomcards": 3,
+          "expertisestrength": 2,
+          "expertisedexterity": 2,
+          "curiousreduction": 1
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "damage": 12,
+            "block": 8,
+            "sappingweak": 2,
+            "sappingvulnerable": 2,
+            "violencehits": 3,
+            "chokingdamage": 6,
+            "energizedenergy": 2,
+            "wisdomcards": 3,
+            "expertisestrength": 2,
+            "expertisedexterity": 2,
+            "curiousreduction": 1
+          },
+          "description": "{CardType:choose(Attack|Skill|Power):Deal {Damage:diff()} damage{Violence: {ViolenceHits:diff()} times|}.|Gain {Block:diff()} Block.||???}{HasRider:{Sapping:\nApply {SappingWeak:diff()} Weak.\nApply {SappingVulnerable:diff()} Vulnerable.|}{Choking:\nWhenever you play a card this turn, the enemy loses {ChokingDamage:diff()} HP.|}{Energized:\nGain {EnergizedEnergy:energyIcons()}.|}{Wisdom:\nDraw {WisdomCards:diff()} cards.|}{Chaos:\nAdd a random card into your Hand. It's free to play this turn.|}{Expertise:Gain {ExpertiseStrength:diff()} Strength.\nGain {ExpertiseDexterity:diff()} Dexterity.|}{Curious:Powers cost {CuriousReduction:diff()} {energyPrefix:energyIcons(1)} less.|}{Improvement:At the end of combat, Upgrade a random card.|}|{CardType:choose(Attack|Skill|Power):\n???|\n???|???|???}}",
+          "added_keywords": [
+            "Innate"
+          ],
+          "removed_keywords": null,
+          "description_vars": {
+            "CardType": "Skill",
+            "HasRider": true,
+            "None": false,
+            "Sapping": false,
+            "Violence": false,
+            "Choking": false,
+            "Energized": true,
+            "Wisdom": false,
+            "Chaos": false,
+            "Expertise": false,
+            "Curious": false,
+            "Improvement": false
+          },
+          "tinker_time": {
+            "card_type": "Skill",
+            "rider": "Energized"
+          }
+        },
+        "description_vars": {
+          "CardType": "Skill",
+          "HasRider": true,
+          "None": false,
+          "Sapping": false,
+          "Violence": false,
+          "Choking": false,
+          "Energized": true,
+          "Wisdom": false,
+          "Chaos": false,
+          "Expertise": false,
+          "Curious": false,
+          "Improvement": false
+        },
+        "tinker_time": {
+          "card_type": "Skill",
+          "rider": "Energized"
+        }
+      },
+      {
+        "id": "CARD.DEFY",
+        "name": "Defy",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Gain {Block:diff()} Block.\nApply {WeakPower:diff()} Weak.",
+        "stats": {
+          "block": 6,
+          "weakpower": 1
+        },
+        "keywords": [
+          "Ethereal"
+        ],
+        "after_upgrade": {
+          "cost": 1,
+          "stats": {
+            "block": 9,
+            "weakpower": 1
+          },
+          "description": "Gain {Block:diff()} Block.\nApply {WeakPower:diff()} Weak.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.WISP",
+        "name": "Wisp",
+        "cost": 0,
+        "type": "Skill",
+        "upgraded": false,
+        "description": "Gain {Energy:energyIcons()}.",
+        "stats": {
+          "energy": 1
+        },
+        "keywords": [
+          "Exhaust"
+        ],
+        "after_upgrade": {
+          "cost": 0,
+          "stats": {
+            "energy": 1
+          },
+          "description": "Gain {Energy:energyIcons()}.",
+          "added_keywords": [
+            "Retain"
+          ],
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.DRAMATIC_ENTRANCE",
+        "name": "Dramatic Entrance",
+        "cost": 0,
+        "type": "Attack",
+        "upgraded": false,
+        "description": "Deal {Damage:diff()} damage to ALL enemies.",
+        "stats": {
+          "damage": 11
+        },
+        "keywords": [
+          "Exhaust",
+          "Innate"
+        ],
+        "after_upgrade": {
+          "cost": 0,
+          "stats": {
+            "damage": 15
+          },
+          "description": "Deal {Damage:diff()} damage to ALL enemies.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.SLEIGHT_OF_FLESH",
+        "name": "Sleight of Flesh",
+        "cost": 2,
+        "type": "Power",
+        "upgraded": false,
+        "description": "Whenever you apply a debuff to an enemy, they take {SleightOfFleshPower:diff()} damage.",
+        "stats": {
+          "sleightoffleshpower": 9
+        },
+        "keywords": null,
+        "after_upgrade": {
+          "cost": 2,
+          "stats": {
+            "sleightoffleshpower": 13
+          },
+          "description": "Whenever you apply a debuff to an enemy, they take {SleightOfFleshPower:diff()} damage.",
+          "added_keywords": null,
+          "removed_keywords": null
+        }
+      },
+      {
+        "id": "CARD.NEGATIVE_PULSE",
+        "name": "Negative Pulse",
+        "cost": 1,
+        "type": "Skill",
+        "upgraded": true,
+        "description": "Gain {Block:diff()} Block.\nApply {DoomPower:diff()} Doom to ALL enemies.",
+        "stats": {
+          "block": 6,
+          "doompower": 11
+        },
+        "keywords": null,
+        "after_upgrade": null
+      }
+    ]
+  },
+  "act": 3,
+  "floor": 15
+}

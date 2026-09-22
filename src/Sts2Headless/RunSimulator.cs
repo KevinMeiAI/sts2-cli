@@ -12,6 +12,8 @@ using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Map;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Characters;
+using MegaCrit.Sts2.Core.Models.Cards;
+using MegaCrit.Sts2.Core.Models.Events;
 using MegaCrit.Sts2.Core.Multiplayer;
 using MegaCrit.Sts2.Core.CardSelection;
 using MegaCrit.Sts2.Core.Entities.CardRewardAlternatives;
@@ -192,6 +194,15 @@ internal class LocLookup
         {
             var en = _eng.GetValueOrDefault(tableName)?.GetValueOrDefault(locKey);
             if (en != null) return StripBBCode(en);
+        }
+        // Event StringVars may contain the engine's upgraded title key even
+        // when only the base title exists in the localization tables.
+        var upgradedTitle = locKey.LastIndexOf(".title+", StringComparison.Ordinal);
+        if (upgradedTitle >= 0)
+        {
+            var baseKey = locKey[..(upgradedTitle + 6)];
+            var name = BilingualFromKey(baseKey);
+            if (name != baseKey) return name + locKey[(upgradedTitle + 6)..];
         }
         return locKey;
     }
@@ -1696,6 +1707,8 @@ public partial class RunSimulator
         var room = _runState?.CurrentRoom;
         if (room is CombatRoom unfinished && !unfinished.IsPreFinished)
             return Error("Combat has not completed; cannot proceed");
+        if (_runState?.CurrentRoomCount > 1 && room is CombatRoom eventCombat && eventCombat.ShouldResumeParentEventAfterCombat)
+            return DetectPostCombatState(player, eventCombat);
         if (room is CombatRoom combatRoom && combatRoom.RoomType == RoomType.Boss)
         {
             if (combatRoom.IsPreFinished || !CombatManager.Instance.IsInProgress)
@@ -1792,7 +1805,7 @@ public partial class RunSimulator
                     var stats = new Dictionary<string, object?>();
                     try { foreach (var dv in card.DynamicVars.Values) stats[dv.Name.ToLowerInvariant()] = (int)dv.BaseValue; } catch { }
                     var bkws = card.Keywords?.Where(k => k != CardKeyword.None).Select(k => k.ToString()).ToList();
-                    return new Dictionary<string, object?>
+                    return WithCardDescriptionVars(card, new Dictionary<string, object?>
                     {
                         ["name"] = _loc.Card(card.Id.Entry),
                         ["cost"] = card.EnergyCost?.GetResolved() ?? 0,
@@ -1801,7 +1814,7 @@ public partial class RunSimulator
                         ["description"] = _loc.Bilingual("cards", card.Id.Entry + ".description"),
                         ["stats"] = stats.Count > 0 ? stats : null,
                         ["keywords"] = bkws?.Count > 0 ? bkws : null,
-                    };
+                    });
                 }).ToList(),
             }).ToList();
 
@@ -1824,7 +1837,7 @@ public partial class RunSimulator
                 var stats = new Dictionary<string, object?>();
                 try { foreach (var dv in cr.Card.DynamicVars.Values) stats[dv.Name.ToLowerInvariant()] = (int)dv.BaseValue; } catch { }
                 var rrkws = cr.Card.Keywords?.Where(k => k != CardKeyword.None).Select(k => k.ToString()).ToList();
-                return new Dictionary<string, object?>
+                return WithCardDescriptionVars(cr.Card, new Dictionary<string, object?>
                 {
                     ["index"] = i,
                     ["id"] = cr.Card.Id.ToString(),
@@ -1836,7 +1849,7 @@ public partial class RunSimulator
                     ["stats"] = stats.Count > 0 ? stats : null,
                     ["keywords"] = rrkws?.Count > 0 ? rrkws : null,
                     ["after_upgrade"] = GetUpgradedInfo(cr.Card),
-                };
+                });
             }).ToList();
 
             return new Dictionary<string, object?>
@@ -1860,7 +1873,7 @@ public partial class RunSimulator
                 var stats = new Dictionary<string, object?>();
                 try { foreach (var dv in card.DynamicVars.Values) stats[dv.Name.ToLowerInvariant()] = (int)dv.BaseValue; } catch { }
                 var selkws = card.Keywords?.Where(k => k != CardKeyword.None).Select(k => k.ToString()).ToList();
-                return new Dictionary<string, object?>
+                return WithCardDescriptionVars(card, new Dictionary<string, object?>
                 {
                     ["index"] = i,
                     ["id"] = card.Id.ToString(),
@@ -1873,7 +1886,7 @@ public partial class RunSimulator
                     ["description"] = _loc.Bilingual("cards", card.Id.Entry + ".description"),
                     ["keywords"] = selkws?.Count > 0 ? selkws : null,
                     ["after_upgrade"] = GetUpgradedInfo(card),
-                };
+                });
             }).ToList();
 
             return new Dictionary<string, object?>
@@ -2165,6 +2178,8 @@ public partial class RunSimulator
                             repeat = 2;
                         // These fixed hit counts live in OnPlay, not a DynamicVar.
                         if (c.Id.Entry is "TWIN_STRIKE" or "DAGGER_SPRAY") repeat = 2;
+                        if (c is MadScience science && science.TinkerTimeRider == TinkerTime.RiderEffect.Violence)
+                            repeat = (int)c.DynamicVars["ViolenceHits"].BaseValue;
                         // Spite's Repeat is conditional; use the same native history
                         // predicate as OnPlay instead of assuming its maximum count.
                         if (c.Id.Entry == "SPITE" && !(bool)AccessTools.Method(c.GetType(), "LostHpThisTurn")
@@ -2225,7 +2240,7 @@ public partial class RunSimulator
             }
             if (damageByTarget != null && damageByTarget.Count > 0)
                 cardInfo["damage_by_target"] = damageByTarget;
-            return cardInfo;
+            return WithCardDescriptionVars(c, cardInfo);
         }).ToList() ?? new();
 
         var playerCreatures = combatState?.PlayerCreatures?.ToList();
@@ -2375,7 +2390,7 @@ public partial class RunSimulator
                 ["context"] = RunContext() };
 
         // Generate rewards manually instead of using TestMode auto-accept
-        if (_pendingRewards == null && !_rewardsProcessed)
+        if (_pendingRewards == null && !_rewardsProcessed && combatRoom.Encounter.ShouldGiveRewards)
         {
             _goldBeforeCombat = player.Gold;
             try
@@ -2421,6 +2436,15 @@ public partial class RunSimulator
         _pendingRewards = null;
         _rewardsProcessed = true;
 
+        // Event combat may have further choices or custom rewards. Resume its
+        // native parent asynchronously and preserve any yielded prompt instead
+        // of forcing the newly resumed event straight back to the map.
+        if (_runState?.CurrentRoomCount > 1 && combatRoom.ShouldResumeParentEventAfterCombat)
+        {
+            _pendingEventChoice = Task.Run(() => RunManager.Instance.ProceedFromTerminalRewardsScreen());
+            return DetectDecisionPoint();
+        }
+
         // Boss → next act, OR final victory after the last act's boss (#81). Act index is
         // 0-based and STS2 has 3 acts (0/1/2); killing the Act-3 (index 2) boss has no next
         // act — EnterNextAct NREs and DetectDecisionPoint falls through to an empty
@@ -2460,7 +2484,7 @@ public partial class RunSimulator
             var stats = new Dictionary<string, object?>();
             try { foreach (var dv in c.DynamicVars.Values) stats[dv.Name.ToLowerInvariant()] = (int)dv.BaseValue; } catch { }
             var crkws = c.Keywords?.Where(k => k != CardKeyword.None).Select(k => k.ToString()).ToList();
-            return new Dictionary<string, object?>
+            return WithCardDescriptionVars(c, new Dictionary<string, object?>
             {
                 ["index"] = i,
                 ["id"] = c.Id.ToString(),
@@ -2472,7 +2496,7 @@ public partial class RunSimulator
                 ["stats"] = stats.Count > 0 ? stats : null,
                 ["keywords"] = crkws?.Count > 0 ? crkws : null,
                 ["after_upgrade"] = GetUpgradedInfo(c),
-            };
+            });
         }).ToList();
 
         return new Dictionary<string, object?>
@@ -2977,6 +3001,31 @@ public partial class RunSimulator
 
     #region Helpers
 
+    // Mad Science shares one template and all numeric vars across its variants.
+    // Export the native selectors so clients can distinguish the chosen effect
+    // from the unused branches (including cards offered in selection screens).
+    private static Dictionary<string, object?> WithCardDescriptionVars(
+        CardModel card, Dictionary<string, object?> info)
+    {
+        if (card is MadScience science)
+        {
+            var vars = new Dictionary<string, object?>
+            {
+                ["CardType"] = science.TinkerTimeType.ToString(),
+                ["HasRider"] = science.TinkerTimeRider != TinkerTime.RiderEffect.None,
+            };
+            foreach (var rider in Enum.GetValues<TinkerTime.RiderEffect>())
+                vars[rider.ToString()] = science.TinkerTimeRider == rider;
+            info["description_vars"] = vars;
+            info["tinker_time"] = new Dictionary<string, object?>
+            {
+                ["card_type"] = science.TinkerTimeType.ToString(),
+                ["rider"] = science.TinkerTimeRider.ToString(),
+            };
+        }
+        return info;
+    }
+
     private void WaitForActionExecutor()
     {
         try
@@ -3032,6 +3081,11 @@ public partial class RunSimulator
         try
         {
             var clone = ModelDb.GetById<CardModel>(card.Id).ToMutable();
+            if (card is MadScience science && clone is MadScience preview)
+            {
+                preview.TinkerTimeType = science.TinkerTimeType;
+                preview.TinkerTimeRider = science.TinkerTimeRider;
+            }
             // Apply existing upgrades first
             for (int i = 0; i < card.CurrentUpgradeLevel; i++)
             {
@@ -3051,14 +3105,14 @@ public partial class RunSimulator
             var addedKws = newKws.Except(oldKws).ToList();
             var removedKws = oldKws.Except(newKws).ToList();
 
-            return new Dictionary<string, object?>
+            return WithCardDescriptionVars(clone, new Dictionary<string, object?>
             {
                 ["cost"] = clone.EnergyCost?.GetResolved() ?? 0,
                 ["stats"] = stats.Count > 0 ? stats : null,
                 ["description"] = _loc.Bilingual("cards", card.Id.Entry + ".description"),
                 ["added_keywords"] = addedKws.Count > 0 ? addedKws : null,
                 ["removed_keywords"] = removedKws.Count > 0 ? removedKws : null,
-            };
+            });
         }
         catch { return null; }
     }
@@ -3127,7 +3181,7 @@ public partial class RunSimulator
                     dcard["affliction"] = _loc.Bilingual("afflictions", c.Affliction.Id.Entry + ".title");
                     try { if (c.Affliction.Amount != 0) dcard["affliction_amount"] = c.Affliction.Amount; } catch { }
                 }
-                return dcard;
+                return WithCardDescriptionVars(c, dcard);
             }).ToList(),
         };
     }

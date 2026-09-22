@@ -344,7 +344,7 @@ def short_n(obj):
     """Short name only."""
     return str(obj) if obj is not None else "?"
 
-def desc(obj):
+def desc(obj, selectors=None):
     """Extract description, strip BBCode tags, clean SmartFormat vars."""
     if obj and isinstance(obj, str):
         import re
@@ -361,6 +361,19 @@ def desc(obj):
 
         def smart_replace(m):
             full = m.group(1)
+            # Conditional event cards expose their native template selectors.
+            choice = re.fullmatch(r'([^:]+):choose\(([^)]*)\):(.*)', full, re.S)
+            if choice and selectors and choice[1] in selectors:
+                choices = choice[2].split('|')
+                branches = choice[3].split('|')
+                value = str(selectors[choice[1]])
+                index = choices.index(value) if value in choices else len(choices)
+                return branches[index] if index < len(branches) else branches[-1]
+            key, separator, branches = full.partition(':')
+            if separator and selectors and isinstance(selectors.get(key), bool):
+                branches = branches.split('|')
+                index = 0 if selectors[key] else 1
+                return branches[index] if index < len(branches) else ''
             # Handle conditional: {IfUpgraded:show:textA|textB}
             if full.startswith("IfUpgraded:show:"):
                 parts = full[len("IfUpgraded:show:"):].split("|")
@@ -503,7 +516,7 @@ def resolve_template(text, vars_dict):
 
 def card_desc(card):
     """Get resolved card description using stats as template vars."""
-    d = desc(card.get("description", {}))
+    d = desc(card.get("description", {}), card.get("description_vars"))
     stats = card.get("stats") or {}
     return resolve_template(d, stats)  # always resolve (handles energyPrefix etc.)
 

@@ -123,6 +123,12 @@ such as Block and Slippery. It is not a promise of how much HP the target will l
 
 ## A10 event coverage and known limits
 
+See [Act 3 endings and fixes](docs/act3-validation.md) for these same saves through
+the final act: Ironclad A0 wins against Queen; Necrobinder A10 reaches Aeonglass
+and loses on round 8. Event combat now respects native reward suppression and
+resumes its parent event. Mad Science exports its actual type/rider and conditional
+description variables, including upgrade previews and correct multi-hit damage.
+
 See [Act 2 continuation and fixes](docs/act2-validation.md) for the same saved
 Ironclad A0 and Necrobinder A10 runs continued through their second boss, including
 Crystal Sphere support and combat/reward compatibility fixes.
@@ -134,10 +140,11 @@ and potions expose their effect variables; event string values remain strings.
 Event options include `is_supported` and `unsupported_reason` separately from
 the game's `is_locked`. Unsupported choices return `code: unsupported_interaction`
 and `state_unchanged: true` before their effects run. Crystal Sphere's grid
-minigame and Trial's abandon confirmation are not implemented yet.
+minigame is supported; Trial's abandon confirmation remains unsupported.
 
 中文：本轮已修复事件崩溃、状态说明、商店效果参数和飞靴地图选项；详见上方报告。
-水晶球小游戏及审判的放弃确认尚未接入，CLI 会在执行效果前明确返回不支持。
+水晶球小游戏已接入；审判的放弃确认尚未接入，CLI 会在执行效果前明确返回不支持。
+第三幕已验证 Queen 胜利和 Aeonglass 战败两种终局，详见第三幕报告。
 
 ## Game Logs
 
