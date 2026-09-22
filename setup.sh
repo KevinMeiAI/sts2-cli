@@ -93,6 +93,11 @@ for dll in "${DLLS[@]}"; do
     fi
 done
 
+# Keep the installed engine's dependency manifest for version-aware checks.
+if [ -f "$GAME_DIR/sts2.deps.json" ]; then
+    cp "$GAME_DIR/sts2.deps.json" "lib/sts2.deps.json"
+fi
+
 # Back up original sts2.dll
 if [ -f "lib/sts2.dll" ]; then
     cp "lib/sts2.dll" "lib/sts2.dll.original"

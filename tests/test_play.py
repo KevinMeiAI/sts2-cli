@@ -48,6 +48,7 @@ def test_interactive_launcher_without_steam_fallback(character):
 
 
 def test_setup_repairs_missing_module_dependency(monkeypatch):
+    monkeypatch.setattr(play, "_requires_sentry_godot", lambda: True)
     isfile = os.path.isfile
     dependency = os.path.join(play.LIB_DIR, "Sentry.Godot.dll")
     monkeypatch.setattr(os.path, "isfile", lambda path: False if path == dependency else isfile(path))
@@ -58,3 +59,16 @@ def test_setup_repairs_missing_module_dependency(monkeypatch):
     play.ensure_setup()
     assert calls == [(["bash", os.path.join(play.ROOT, "setup.sh"), "/test/steam/data"],
                       {"cwd": play.ROOT, "check": True})]
+
+
+def test_legacy_engine_without_sentry_godot_does_not_rerun_setup(monkeypatch, tmp_path):
+    """An installed v0.107.1 engine must launch without a nonexistent dependency."""
+    (tmp_path / "sts2.dll").touch()
+    (tmp_path / "sts2.deps.json").write_text('{"libraries":{"Sentry/5.0.0":{}}}')
+    monkeypatch.setattr(play, "LIB_DIR", str(tmp_path))
+    monkeypatch.setattr(play.os.path, "getmtime", lambda path: 0)
+    calls = []
+    monkeypatch.setattr(play.subprocess, "run", lambda args, **kwargs: calls.append(args))
+    monkeypatch.delenv("STS2_GAME_DIR", raising=False)
+    play.ensure_setup()
+    assert calls == []

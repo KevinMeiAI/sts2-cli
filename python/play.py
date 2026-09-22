@@ -137,6 +137,16 @@ def _build():
     return r.returncode == 0
 
 
+def _requires_sentry_godot():
+    """Older engines do not ship or reference Sentry.Godot."""
+    try:
+        with open(os.path.join(LIB_DIR, "sts2.deps.json"), encoding="utf-8") as f:
+            libraries = json.load(f)["libraries"]
+        return any(name.split("/", 1)[0] == "Sentry.Godot" for name in libraries)
+    except (OSError, ValueError, KeyError, TypeError):
+        return True
+
+
 def ensure_setup():
     """Check that everything is ready to run. Auto-setup if needed."""
     issues = []
@@ -149,7 +159,8 @@ def ensure_setup():
 
     # Check lib/sts2.dll exists
     sts2_dll = os.path.join(LIB_DIR, "sts2.dll")
-    if not os.path.isfile(sts2_dll) or not os.path.isfile(os.path.join(LIB_DIR, "Sentry.Godot.dll")):
+    if not os.path.isfile(sts2_dll) or (_requires_sentry_godot() and
+            not os.path.isfile(os.path.join(LIB_DIR, "Sentry.Godot.dll"))):
         print(t("📦 Game DLLs missing. Running setup...", "📦 缺少游戏 DLL，正在运行安装程序……"))
         game_dir = _find_game_dir()
         if not game_dir:
