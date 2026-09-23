@@ -158,6 +158,8 @@ class Program
                 var loadLang = cmd.TryGetProperty("lang", out var le) ? (le.GetString() ?? "en") : "en";
                 return sim.LoadSave(saveJson, loadLang);
             }
+            case "get_run_metrics":
+                return sim.GetRunMetrics();
             case "get_map":
                 return sim.GetFullMap();
             case "get_state":

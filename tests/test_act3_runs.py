@@ -61,7 +61,11 @@ def test_complete_manual_act3_trace_and_exact_ending(game, tmp_path, monkeypatch
         assert card['after_upgrade']['description_vars'] == card['description_vars']
     for _ in range(2):
         assert game.send({'cmd': 'get_state'}) == state
+    metrics = game.send({'cmd': 'get_run_metrics'})
+    assert metrics['total_floor'] == 48
+    assert metrics['player_hp'] == hp
     resumed, _ = save_and_restore(game, state, tmp_path)
+    assert resumed.send({'cmd': 'get_run_metrics'}) == metrics
     resumed.close()
     game.close()
     for process in (game, resumed):

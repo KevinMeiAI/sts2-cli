@@ -29,12 +29,13 @@ case "$STS2_MODE" in
     menu)   exec python3 launch.py "$@" ;;
     json)   exec dotnet src/Sts2Headless/bin/Debug/net9.0/Sts2Headless.dll "$@" ;;
     bridge) exec python3 agent/sts2_bridge.py "$@" ;;
+    arena)  exec python3 -m arena "$@" ;;
     check)  exec python3 python/play_full_run.py "$@" ;;
     test)   exec python3 -m pytest "$@" ;;
     setup)  exec bash setup.sh "$@" ;;
     build)  exec dotnet build src/Sts2Headless/Sts2Headless.csproj "$@" ;;
     *)
-        echo "Usage: $0 {play|menu|json|bridge|check|test|setup|build} [arguments]" >&2
+        echo "Usage: $0 {play|menu|json|bridge|arena|check|test|setup|build} [arguments]" >&2
         exit 2
         ;;
 esac

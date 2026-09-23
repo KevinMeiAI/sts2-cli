@@ -22,3 +22,7 @@ verification/
 /安装记录.json
 /使用说明.md
 /本地兼容修复.patch
+
+# Arena credentials and machine-specific runs
+.arena-private/
+arena-exam/

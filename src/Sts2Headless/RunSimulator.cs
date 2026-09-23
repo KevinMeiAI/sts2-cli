@@ -281,6 +281,7 @@ public partial class RunSimulator
             // Register event handlers for combat turn transitions
             CombatManager.Instance.TurnStarted += _ => _turnStarted.Set();
             CombatManager.Instance.CombatEnded += _ => _combatEnded.Set();
+            EnableRunMetrics();
 
             // Finalize starting relics
             RunManager.Instance.FinalizeStartingRelics().GetAwaiter().GetResult();
@@ -539,6 +540,7 @@ public partial class RunSimulator
 
             CombatManager.Instance.TurnStarted += _ => _turnStarted.Set();
             CombatManager.Instance.CombatEnded += _ => _combatEnded.Set();
+            EnableRunMetrics();
             CardSelectCmd.UseSelector(_cardSelector);
             LocPatches._bundleSimRef = this;
 
@@ -4176,6 +4178,7 @@ public partial class RunSimulator
 
     public void CleanUp()
     {
+        DisableRunMetrics();
         try
         {
             if (RunManager.Instance.IsInProgress)

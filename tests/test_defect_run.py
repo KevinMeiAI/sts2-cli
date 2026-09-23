@@ -63,7 +63,14 @@ def test_manual_defect_a10_trace_and_exact_defeat(game, tmp_path, monkeypatch):
     assert orb_types == {'Lightning', 'Frost', 'Dark', 'Glass', 'Plasma'}
     assert all((saw_empty, saw_x, saw_upgraded_reward, saw_echo, saw_plasma_energy))
     assert game.send({'cmd': 'get_state'}) == state
+    metrics = game.send({'cmd': 'get_run_metrics'})
+    # The final end_turn deals Lightning + Glass damage before the fatal attack.
+    # A cached pre-action enemy state would incorrectly score 61 / 155.
+    assert (metrics['total_floor'], metrics['enemy_hp'], metrics['enemy_max_hp']) == (31, 54, 155)
+    assert metrics['player_hp'] == 0 and metrics['source'] == 'native_post_action'
+    assert game.send({'cmd': 'get_state'}) == state
     restored, _ = save_and_restore(game, state, tmp_path)
+    assert restored.send({'cmd': 'get_run_metrics'}) == metrics
     restored.close()
     for process in (game, restored):
         assert not any('Exception' in line or '[ERROR]' in line or 'timeout' in line.lower()

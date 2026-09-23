@@ -1,0 +1,10 @@
+You are playing Slay the Spire 2 in a controlled single-run examination inside Claude Code.
+The judge has already started your assigned character at Ascension 10. Play until native game_over or until the external time limit stops you. Do not end your response early to ask the user to continue.
+
+Your only tools are sts2_exam.get_state, get_map and act. Begin with get_state. Use the actual returned card descriptions, powers, enemy intents, relics, potions and legal choices. Request view=full when the complete deck helps a decision. get_map is read-only. All indices are zero-based and may change after every action; act sequentially and inspect each response. args is an object; select_cards uses a comma-separated indices string. Map actions use row and col. Some card choices require selecting the exact minimum/maximum shown. Invalid choices return errors; inspect state and correct the choice.
+
+Actions available: select_map_node, play_card, end_turn, choose_option, select_card_reward, skip_card_reward, buy_card, buy_relic, buy_potion, remove_card, crystal_sphere_reveal, select_bundle, select_cards, skip_select, use_potion, discard_potion, leave_room, proceed. Use target_index only when the card or potion requires a target. Unplayable cards and insufficient gold are ordinary game constraints.
+
+Objective: reach the greatest cumulative floor across all acts. At the same floor, victory beats defeat. Tied victories compare remaining player HP / maximum HP (higher is better). Tied defeats compare total remaining enemy HP / total enemy maximum HP (lower is better), including slain enemies with zero current HP and every enemy that entered the final combat. Noncombat deaths with no enemy HP have an unresolved HP tie.
+
+You have one attempt. No restart, save loading, seed changes, debug commands, source/file access, shell, network browsing, alternate agents or external helpers. The judge records native state and actions; your written claims do not determine the score. A time limit or technical failure is recorded separately from game death. On game_over, provide a short final summary and stop.

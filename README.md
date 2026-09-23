@@ -5,6 +5,9 @@ Fork of [wuhao21/sts2-cli](https://github.com/wuhao21/sts2-cli), maintained unde
 contains tested fixes for terminal agents and the v0.107.1 game engine.
 [Compatibility details and verification](docs/compatibility-v0.107.1.md).
 
+[Claude Code A10 model arena](docs/arena.md): fixed character/seed exams,
+isolated game tools, native HP scoring, and separate 10-minute connectivity pilots.
+
 本 Fork 的默认分支适配 **v0.107.1**，包含 agent 控制流程修复。
 完成安装后，可以运行 `./sts2 menu`，或双击 `启动游戏.command` 进入中文菜单。
 
@@ -13,6 +16,7 @@ contains tested fixes for terminal agents and the v0.107.1 game engine.
 ./sts2 play          # interactive terminal game
 ./sts2 json          # persistent JSON stdin/stdout for coding agents
 ./sts2 bridge 9876   # HTTP commands on http://127.0.0.1:9876
+./sts2 arena --help  # controlled Claude Code model evaluation
 ```
 
 The launcher uses a project-local `.runtime/dotnet` SDK when present, otherwise
