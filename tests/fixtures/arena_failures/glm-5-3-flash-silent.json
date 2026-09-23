@@ -1,0 +1,375 @@
+{
+  "model": "glm-5-3-flash",
+  "character": "Silent",
+  "seed": "SWRQDQEHUF",
+  "commands": [
+    {
+      "cmd": "start_run",
+      "character": "Silent",
+      "seed": "SWRQDQEHUF",
+      "ascension": 10,
+      "lang": "en"
+    },
+    {
+      "cmd": "action",
+      "action": "choose_option",
+      "args": {
+        "option_index": 2
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "select_map_node",
+      "args": {
+        "col": 3,
+        "row": 1
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "play_card",
+      "args": {
+        "card_index": 3,
+        "target_index": 0
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "play_card",
+      "args": {
+        "card_index": 3,
+        "target_index": 0
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "play_card",
+      "args": {
+        "card_index": 0
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "end_turn",
+      "args": {}
+    },
+    {
+      "cmd": "action",
+      "action": "play_card",
+      "args": {
+        "card_index": 0,
+        "target_index": 0
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "play_card",
+      "args": {
+        "card_index": 0,
+        "target_index": 0
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "play_card",
+      "args": {
+        "card_index": 2,
+        "target_index": 0
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "play_card",
+      "args": {
+        "card_index": 0,
+        "target_index": 0
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "end_turn",
+      "args": {}
+    },
+    {
+      "cmd": "action",
+      "action": "play_card",
+      "args": {
+        "card_index": 4,
+        "target_index": 0
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "end_turn",
+      "args": {}
+    },
+    {
+      "cmd": "action",
+      "action": "play_card",
+      "args": {
+        "card_index": 0,
+        "target_index": 0
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "play_card",
+      "args": {
+        "card_index": 2,
+        "target_index": 0
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "play_card",
+      "args": {
+        "card_index": 0,
+        "target_index": 0
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "select_card_reward",
+      "args": {
+        "card_index": 2
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "select_map_node",
+      "args": {
+        "col": 3,
+        "row": 2
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "play_card",
+      "args": {
+        "card_index": 0,
+        "target_index": 0
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "play_card",
+      "args": {
+        "card_index": 1,
+        "target_index": 0
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "play_card",
+      "args": {
+        "card_index": 4,
+        "target_index": 0
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "play_card",
+      "args": {
+        "card_index": 2
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "end_turn",
+      "args": {}
+    },
+    {
+      "cmd": "action",
+      "action": "play_card",
+      "args": {
+        "card_index": 3,
+        "target_index": 0
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "play_card",
+      "args": {
+        "card_index": 3,
+        "target_index": 0
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "play_card",
+      "args": {
+        "card_index": 1,
+        "target_index": 0
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "end_turn",
+      "args": {}
+    },
+    {
+      "cmd": "action",
+      "action": "play_card",
+      "args": {
+        "card_index": 1,
+        "target_index": 0
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "play_card",
+      "args": {
+        "card_index": 2,
+        "target_index": 0
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "play_card",
+      "args": {
+        "card_index": 0
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "end_turn",
+      "args": {}
+    },
+    {
+      "cmd": "action",
+      "action": "play_card",
+      "args": {
+        "card_index": 2,
+        "target_index": 0
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "play_card",
+      "args": {
+        "card_index": 3,
+        "target_index": 0
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "select_card_reward",
+      "args": {
+        "card_index": 2
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "select_map_node",
+      "args": {
+        "col": 3,
+        "row": 3
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "remove_card",
+      "args": {
+        "indices": "13"
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "skip_select",
+      "args": {}
+    },
+    {
+      "cmd": "action",
+      "action": "select_cards",
+      "args": {
+        "indices": "0"
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "buy_card",
+      "args": {
+        "card_index": 1
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "buy_relic",
+      "args": {
+        "relic_index": 0
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "buy_potion",
+      "args": {
+        "potion_index": 1
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "leave_room",
+      "args": {}
+    },
+    {
+      "cmd": "action",
+      "action": "select_map_node",
+      "args": {
+        "col": 2,
+        "row": 4
+      }
+    },
+    {
+      "cmd": "action",
+      "action": "choose_option",
+      "args": {
+        "option_index": 1
+      }
+    }
+  ],
+  "before": {
+    "hp": 34,
+    "gold": 81,
+    "context": {
+      "act": 1,
+      "act_name": "Overgrowth",
+      "floor": 5,
+      "room_type": "Event",
+      "boss": {
+        "id": "THE_KIN_BOSS",
+        "name": "Kin Priest"
+      }
+    },
+    "options": [
+      {
+        "index": 0,
+        "title": "Solo Quest",
+        "description": "Gain {SoloGold} Gold. Lose {SoloHp} HP.",
+        "text_key": "JUNGLE_MAZE_ADVENTURE.pages.INITIAL.options.SOLO_QUEST",
+        "is_locked": false,
+        "is_supported": true,
+        "unsupported_reason": null,
+        "vars": {
+          "SoloGold": 155.803202,
+          "SoloHp": 18,
+          "JoinForcesGold": 55.100245
+        }
+      },
+      {
+        "index": 1,
+        "title": "Join Forces",
+        "description": "Gain {JoinForcesGold} Gold.",
+        "text_key": "JUNGLE_MAZE_ADVENTURE.pages.INITIAL.options.JOIN_FORCES",
+        "is_locked": false,
+        "is_supported": true,
+        "unsupported_reason": null,
+        "vars": {
+          "SoloGold": 155.803202,
+          "SoloHp": 18,
+          "JoinForcesGold": 55.100245
+        }
+      }
+    ]
+  },
+  "original_error": "Event choose failed: NullReferenceException: Object reference not set to an instance of an object."
+}

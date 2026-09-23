@@ -82,6 +82,10 @@ class Attempt:
             self.fault = 'engine_exception'
         atomic_json(self.directory / 'current.json', {'at': utc(), 'state': self.state,
                     'metrics': self.metrics, 'score': score(self.state, self.metrics), 'fault': self.fault})
+        if self.fault:
+            # An exception can leave a partially applied action in the native
+            # replay history. Keep the last healthy checkpoint for diagnosis.
+            return
         saved = self.request({'cmd': 'write_continue_save', 'path': str(self.directory / 'checkpoint.save')})
         if not saved.get('success'):
             raise EngineError('Judge checkpoint could not be saved')
@@ -109,6 +113,8 @@ class Attempt:
         if response.get('type') == 'error':
             if 'Exception' in response.get('message', '') or response.get('code') == 'combat_not_completed':
                 self.fault = 'engine_error'
+                atomic_json(self.directory / 'fault.json', {'at': utc(), 'type': self.fault,
+                    'request': command, 'response': response, 'checkpoint_preserved': True})
             self.state = self.request({'cmd': 'get_state'})
         else:
             self.state = response

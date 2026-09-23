@@ -3461,6 +3461,7 @@ public partial class RunSimulator
         foreach (var method in new[] { "Accept", "AddVfxAnchoredToPortrait" })
             harmony.Patch(AccessTools.Method(typeof(MegaCrit.Sts2.Core.Models.Events.Trial), method),
                 transpiler: new HarmonyMethod(typeof(RunSimulator), nameof(SkipTrialCosmetics)));
+        PatchJungleMazeAudio(harmony);
     }
 
     private static void NoScreenShake(MegaCrit.Sts2.Core.Nodes.NGame? game,

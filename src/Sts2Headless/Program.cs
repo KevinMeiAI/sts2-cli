@@ -160,6 +160,8 @@ class Program
             }
             case "get_run_metrics":
                 return sim.GetRunMetrics();
+            case "list_events":
+                return sim.ListEvents();
             case "get_map":
                 return sim.GetFullMap();
             case "get_state":
