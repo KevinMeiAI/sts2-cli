@@ -21,7 +21,7 @@ pytestmark = pytest.mark.skipif(os.environ.get('RUN_CLAUDE_MOCK') != '1', reason
 
 
 @pytest.mark.parametrize('auth', ['ANTHROPIC_API_KEY', 'ANTHROPIC_AUTH_TOKEN'])
-@pytest.mark.parametrize('timeout', [False, True])
+@pytest.mark.parametrize('timeout', [False, True, 'unlimited'])
 def test_real_claude_uses_only_game_tools_with_mock_provider(tmp_path, auth, timeout):
     requests = []
     release = threading.Event()
@@ -42,7 +42,7 @@ def test_real_claude_uses_only_game_tools_with_mock_provider(tmp_path, auth, tim
             requests.append({'body': body, 'api_key': self.headers.get('x-api-key'), 'auth': self.headers.get('Authorization')})
             count = sum(1 for msg in body.get('messages', []) if isinstance(msg.get('content'), list)
                         for block in msg['content'] if block.get('type') == 'tool_result')
-            if timeout and count >= 2:
+            if timeout is True and count >= 2:
                 release.wait(10)
                 return
             if count == 0:
@@ -88,13 +88,17 @@ def test_real_claude_uses_only_game_tools_with_mock_provider(tmp_path, auth, tim
         exam_dir = tmp_path / 'mock-exam'
         initialize(exam_dir, ROOT, CLAUDE)
         # This synthetic test has a short bound and its own throwaway exam.
-        atomic_json(exam_dir / 'policy.json', {'pilot_seconds': 4 if timeout else 30, 'official_seconds': None})
+        atomic_json(exam_dir / 'policy.json', {'pilot_seconds': 4 if timeout is True else 30,
+                    'official_seconds': None, 'official_unlimited': timeout == 'unlimited'})
         secret = 'dummy-not-a-real-key'
         config = parse_oneliner(f'ANTHROPIC_BASE_URL=http://127.0.0.1:{server.server_port} {auth}={secret} claude --model mock-exam-model')
         config['id'] = 'mock'
-        result = run(exam_dir / 'exam.json', ROOT, tmp_path / 'private', config, 'pilot', 'practice', CLAUDE)
+        mode, case = ('official', 'ironclad') if timeout == 'unlimited' else ('pilot', 'practice')
+        result = run(exam_dir / 'exam.json', ROOT, tmp_path / 'private', config, mode, case, CLAUDE)
         assert result['connected'], result
-        assert result['status'] == ('time_limit' if timeout else 'early_stop'), result
+        assert result['status'] == ('time_limit' if timeout is True else 'early_stop'), result
+        if timeout == 'unlimited':
+            assert result['time_limit_seconds'] is None
         assert result['score']['terminal'] is False
         assert result['tools_verified'] and result['tool_calls'] == 2
         assert requests
@@ -105,7 +109,7 @@ def test_real_claude_uses_only_game_tools_with_mock_provider(tmp_path, auth, tim
                 assert req['api_key'] == secret and not req['auth']
             else:
                 assert req['auth'] == 'Bearer ' + secret and not req['api_key']
-        directory = exam_dir / 'runs/pilot/mock/practice'
+        directory = exam_dir / 'runs' / mode / 'mock' / case
         trace = [json.loads(line) for line in (directory / 'game.jsonl').read_text().splitlines()]
         assert sum(row['request']['cmd'] == 'start_run' for row in trace) == 1
         assert sum(row['request'].get('action') == 'choose_option' for row in trace) == 1

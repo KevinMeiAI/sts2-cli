@@ -6,6 +6,7 @@ import subprocess
 import sys
 import threading
 import time
+import uuid
 from pathlib import Path
 from .common import TOOL_NAMES, atomic_json, digest, load_exam, load_json, minimal_env, utc
 from .providers import public_config, redact
@@ -33,7 +34,25 @@ def command(executable, config, mcp_path):
     return args
 
 
-def run(manifest, game_root, private_dir, config, mode, case_id, executable):
+def time_limit(policy, mode):
+    seconds = policy['pilot_seconds'] if mode == 'pilot' else policy['official_seconds']
+    if mode == 'official' and policy.get('official_unlimited') is True:
+        if seconds is not None:
+            raise ValueError('Unlimited policy must not also specify a time limit')
+        return None
+    if seconds is None:
+        raise ValueError('Official time limit is unset; select seconds or explicit unlimited mode')
+    if type(seconds) is not int or seconds <= 0:
+        raise ValueError('Time limit must be a positive integer')
+    return seconds
+
+
+def session_headers(existing, session_id):
+    headers = [h for h in existing.splitlines() if h.split(':', 1)[0].strip().lower() != 'x-session-id']
+    return '\n'.join(headers + ['X-Session-Id: ' + session_id])
+
+
+def run(manifest, game_root, private_dir, config, mode, case_id, executable, stop_event=None):
     manifest, game_root = Path(manifest).resolve(), Path(game_root).resolve()
     exam = load_exam(manifest, game_root)
     version = claude_version(executable)
@@ -41,11 +60,7 @@ def run(manifest, game_root, private_dir, config, mode, case_id, executable):
         raise ValueError('Claude Code version differs from the frozen exam')
     policy_path = manifest.parent / 'policy.json'
     policy = load_json(policy_path)
-    seconds = policy['pilot_seconds'] if mode == 'pilot' else policy['official_seconds']
-    if seconds is None:
-        raise ValueError('Official time limit is unset. Finish pilots and set limits first.')
-    if type(seconds) is not int or seconds <= 0:
-        raise ValueError('Time limit must be a positive integer')
+    seconds = time_limit(policy, mode)
     if mode == 'official':
         for previous in manifest.parent.glob('runs/official/*/*/run.json'):
             if load_json(previous)['policy_sha256'] != digest(policy_path):
@@ -72,6 +87,8 @@ def run(manifest, game_root, private_dir, config, mode, case_id, executable):
         '--directory', str(directory)], 'env': {'PYTHONPATH': str(PACKAGE_ROOT)}}}}, private=True)
     env = minimal_env()
     env.update(config['env'])
+    session_id = str(uuid.uuid4())
+    env['ANTHROPIC_CUSTOM_HEADERS'] = session_headers(env.get('ANTHROPIC_CUSTOM_HEADERS', ''), session_id)
     env.update({'HOME': str(home), 'CLAUDE_CONFIG_DIR': str(private / 'claude'),
                 'CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC': '1', 'DISABLE_AUTOUPDATER': '1',
                 'DISABLE_TELEMETRY': '1', 'DISABLE_ERROR_REPORTING': '1',
@@ -81,6 +98,7 @@ def run(manifest, game_root, private_dir, config, mode, case_id, executable):
         'mode': mode, 'case_id': case_id, 'started_at': utc(), 'time_limit_seconds': seconds,
         'exam_sha256': digest(manifest), 'policy_sha256': digest(policy_path),
         'claude_version': version, 'status': 'running', 'allowed_tools': TOOL_NAMES}
+    metadata['session_header_id'] = session_id
     atomic_json(directory / 'run.json', metadata)
     events, parsing_errors = [], []
     def capture(stream, path, structured=False):
@@ -105,6 +123,8 @@ def run(manifest, game_root, private_dir, config, mode, case_id, executable):
         proc = subprocess.Popen(command(executable, config, mcp_path), cwd=cwd, env=env,
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             text=True, bufsize=1, start_new_session=True)
+        metadata['claude_pid'] = proc.pid
+        atomic_json(directory / 'run.json', metadata)
         for stream, filename, structured in [(proc.stdout, 'claude.jsonl', True), (proc.stderr, 'claude.stderr.log', False)]:
             thread = threading.Thread(target=capture, args=(stream, directory / filename, structured), daemon=True)
             thread.start()
@@ -112,6 +132,9 @@ def run(manifest, game_root, private_dir, config, mode, case_id, executable):
         proc.stdin.write('Begin your assigned run now. Keep playing through every act until game_over.\n')
         proc.stdin.close()
         while proc.poll() is None:
+            if stop_event is not None and stop_event.is_set():
+                stopped = 'interrupted'
+                break
             init = next((e for e in events if e.get('type') == 'system' and e.get('subtype') == 'init'), None)
             if init and set(init.get('tools', [])) != set(TOOL_NAMES):
                 stopped = 'tool_isolation_failure'
@@ -130,7 +153,7 @@ def run(manifest, game_root, private_dir, config, mode, case_id, executable):
                     if time.monotonic() - terminal_since > 3:
                         stopped = 'game_finished'
                         break
-            if time.monotonic() - started >= seconds:
+            if seconds is not None and time.monotonic() - started >= seconds:
                 stopped = 'time_limit'
                 break
             time.sleep(.1)

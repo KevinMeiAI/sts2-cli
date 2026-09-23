@@ -53,13 +53,13 @@ def report(manifest):
     lines.extend(f"| {c['character']} | `{c['seed']}` |" for c in exam['cases'])
     policy = load_json(manifest.parent / 'policy.json')
     lines.extend(['', f"连通性试跑：每模型 {policy['pilot_seconds']} 秒，共用独立 Ironclad 练习种子。",
-                  f"正式单局上限：{policy['official_seconds'] if policy['official_seconds'] else '待试跑后决定'}。", '',
+                  f"正式单局上限：{'不限时' if policy.get('official_unlimited') else (str(policy['official_seconds']) + ' 秒' if policy['official_seconds'] else '待试跑后决定')}。", '',
                   '每角色先比累计楼层，同层先分胜败；胜者比自身剩余生命比例（高优），败者比敌方剩余生命比例（低优）。',
                   '敌方百分比包含该战斗内已击杀与召唤的敌人。非战斗死亡无敌人血量时保留并列。',
                   '总榜需要四局均自然结束，依次比较累计楼层之和、通关数、血量得分之和（胜局自身比例，败局 1−敌方比例）。',
                   '超时、接口错误、主动提前停止和引擎故障单独记录，不算死亡，不混入正式成绩。', '', '## 运行记录', ''])
     if not records:
-        lines.append('尚未接入参赛模型；没有模型成绩。')
+        lines.append('尚无已结束的模型成绩；进行中的比赛见 progress.json。')
     else:
         lines.extend(['| 模型 | 模式 | 角色/题目 | 状态 | 累计层数 | HP 比例 |', '|---|---|---|---|---|---|'])
         for r in records:
@@ -88,7 +88,12 @@ def main():
     sub.add_parser('models', help='List redacted provider metadata')
     sub.add_parser('verify', help='Check frozen exam and binary/harness versions without an API call')
     limits = sub.add_parser('set-limits', help='Set formal per-game wall time before any official attempt')
-    limits.add_argument('--seconds', type=int, required=True)
+    duration = limits.add_mutually_exclusive_group(required=True)
+    duration.add_argument('--seconds', type=int)
+    duration.add_argument('--unlimited', action='store_true')
+    limits.add_argument('--concurrency', type=int, default=1, help='Maximum concurrent official games per model')
+    batch = sub.add_parser('batch', help='Run all official cases with a separate queue per model')
+    batch.add_argument('model_ids', nargs='+')
     for name in ('pilot', 'run'):
         p = sub.add_parser(name)
         p.add_argument('model_id')
@@ -112,13 +117,21 @@ def main():
             result = {'verified': True, 'exam_id': result['id'], 'provider_calls': 0}
         elif args.command == 'set-limits':
             load_exam(args.exam)
-            if args.seconds < 60:
+            if args.seconds is not None and args.seconds < 60:
                 raise ValueError('Official limit must be at least 60 seconds')
+            if args.concurrency not in range(1, len(CHARACTERS) + 1):
+                raise ValueError('Concurrency must be between 1 and the number of cases')
             if (args.exam.parent / 'runs/official').exists():
                 raise ValueError('Official attempts already exist; policy is locked')
-            atomic_json(args.exam.parent / 'policy.json', {'pilot_seconds': 600, 'official_seconds': args.seconds})
-            result = {'official_seconds': args.seconds}
+            policy = load_json(args.exam.parent / 'policy.json')
+            policy.update(official_seconds=args.seconds, official_unlimited=args.unlimited,
+                          concurrency_per_model=args.concurrency)
+            atomic_json(args.exam.parent / 'policy.json', policy)
+            result = policy
             report(args.exam)
+        elif args.command == 'batch':
+            from .batch import launch
+            result = launch(args.exam, args.game_root, args.private_dir, args.model_ids, args.claude)
         elif args.command in ('pilot', 'run'):
             config = read_config(args.private_dir / 'providers', args.model_id)
             cases = ['practice'] if args.command == 'pilot' else ([c.lower() for c in CHARACTERS] if args.case == 'all' else [args.case])

@@ -2,7 +2,7 @@
 
 每个模型通过 Claude Code 操作真实游戏引擎的 headless 适配器。裁判启动游戏、记录动作、保存存档，并从原生状态计算成绩。正式试题为 Ironclad、Silent、Defect、Necrobinder 各一个随机种子，难度均为 A10。同一场考试中所有模型使用相同的四个种子。
 
-先对每个模型进行最多 **600 秒的连通性试跑**，共用另外一个 Ironclad 练习种子。试跑不计正式成绩。正式单局时限默认未设置，必须在试跑后确定；未设置时启动正式赛会被拒绝。
+先对每个模型进行最多 **600 秒的连通性试跑**，共用另外一个 Ironclad 练习种子。试跑不计正式成绩。正式单局时限默认未设置，必须在试跑后确定秒数或明确选择不限时；未设置时启动正式赛会被拒绝。
 
 ## 使用
 
@@ -25,11 +25,20 @@
 ./sts2 arena --exam /absolute/path/exam-01/exam.json \
   --private-dir /absolute/private/path run model-a --case all
 ./sts2 arena --exam /absolute/path/exam-01/exam.json report
+
+# 或在第一次正式尝试前选择不限时，每个模型最多两局并发。
+./sts2 arena --exam /absolute/path/exam-01/exam.json set-limits --unlimited --concurrency 2
+./sts2 arena --exam /absolute/path/exam-01/exam.json \
+  --private-dir /absolute/private/path batch model-a model-b model-c
 ```
 
 可接受的 oneliner 结构：`ANTHROPIC_BASE_URL=... ANTHROPIC_API_KEY=... claude --model ...`，也支持 `ANTHROPIC_AUTH_TOKEN`、`export A=...; ...; claude --model ...`、`--effort`。只接受明确的模型名和一个认证值。所有提供的模型别名必须指向同一个参赛模型。API key 保持 `x-api-key`，auth token 保持 Bearer，二者不会互相转换。拒绝管道、命令替换、任意脚本和附加 Claude 权限参数。
 
 每个模型与题目只能启动一次，目录已存在时拒绝覆盖。`--case all` 顺序运行四局，遇到未完成或故障就停下供检查。任何需要重测的技术事故都应明确记录，并使用新的考试目录；考场不会自动重开、恢复或补考。
+
+`batch` 按模型分别排队，一局结束后补上该模型的下一个角色，包含异常结束的情况；不会重试失败题目。`batch.lock` 防止重复调度。单一总控每五秒更新 `progress.json`、`README.md` 和 `leaderboard.json`；每局分别写自己的记录与检查点。`batch.json` 保存总控 PID 和冻结配置，`summary.json` 保存最终汇总。SIGINT/SIGTERM 会停止补位并收尾活跃子进程；该中断不能计成游戏死亡。不限时只取消整局墙钟截止时间，单次引擎命令和供应商请求仍可超时并单独报错。
+
+每局都会替换 `X-Session-Id` 为新的 UUID，保留其他自定义头。会话 UUID 与 Claude PID 写入该局 `run.json`，可用于核验隔离与进程清理。
 
 ## 成绩规则
 
