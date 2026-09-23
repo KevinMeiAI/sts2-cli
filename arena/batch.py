@@ -96,25 +96,25 @@ def write_report(directory, plan, data):
     limit = '不限时' if plan['time_limit_seconds'] is None else str(plan['time_limit_seconds']) + ' 秒'
     lines = ['# Slay the Spire 2 · A10 正式模型比赛', '',
         f"每模型最多 {plan['concurrency_per_model']} 局并发，单局{limit}，统一 effort=max。",
-        '同一角色使用同一种子；所有比赛均在独立 Claude Code 会话中运行。',
+        f"每模型共 {len(plan['case_ids'])} 道题；同一题号使用同一种子，所有比赛均在独立 Claude Code 会话中运行。",
         f"状态：{plan['status']}；已结束 {data['finished']}/{data['total']}；活跃 {data['active']}。",
         f"更新时间：{data['updated_at']}",
         '故障策略：任一 technical_failure 立即停止所有对局与排队。' if plan.get('stop_on_technical_failure') else '故障策略：各局独立记录。', '',
-        '| 模型 | 角色 | 正式种子 | 状态 | 累计楼层 | 角色 HP | 敌人 HP |',
-        '|---|---|---|---|---|---|---|']
+        '| 模型 | 题号 | 角色 | 正式种子 | 状态 | 累计楼层 | 角色 HP | 敌人 HP |',
+        '|---|---|---|---|---|---|---|---|']
     for row in data['jobs']:
         s = row.get('score') or {}
         player = f"{s['player_hp']}/{s['player_max_hp']}" if s else '—'
         enemy = f"{s['enemy_hp']}/{s['enemy_max_hp']}" if s and s.get('enemy_max_hp') else '—'
-        lines.append(f"| {row['model_id']} | {row['character']} | `{row['seed']}` | {row['status']} | {s.get('total_floor', '—')} | {player} | {enemy} |")
-    lines += ['', '## 总榜', '', '只有四局全部自然胜败结束的模型参与总榜；运行中的楼层不是最终成绩。']
+        lines.append(f"| {row['model_id']} | {row['case_id']} | {row['character']} | `{row['seed']}` | {row['status']} | {s.get('total_floor', '—')} | {player} | {enemy} |")
+    lines += ['', '## 总榜', '', f"只有全部 {len(plan['case_ids'])} 局自然胜败结束的模型参与总榜；运行中的楼层不是最终成绩。"]
     for r in rank['overall']:
         lines.append(f"- {r['model_id']}：总楼层 {r['total_floor']}，通关 {r['wins']}，血量得分 {r['hp_score']}")
-    lines += ['', '每角色先比累计楼层，同层胜利优先；胜局比自身 HP 百分比（高优），败局比敌方 HP 百分比（低优）。',
+    lines += ['', '同题先比累计楼层，同层胜利优先；胜局比自身 HP 百分比（高优），败局比敌方 HP 百分比（低优）。',
         '敌人分母包含终局战斗中已击杀与召唤的敌人。总榜比较总楼层、通关数、血量得分之和。',
         '接口错误、主动提前停止、引擎故障和外部中断单独记录，保留检查点，不伪装成死亡、不自动重开。',
         '每局 HOME、Claude 配置、会话标识、MCP 管道、原生引擎、存档和日志独立。模型仅有三个游戏工具。',
-        '日志在 runs/official/<模型>/<角色>/；总控状态在 batch.json、progress.json。',
+        '日志在 runs/official/<模型>/<题号>/；总控状态在 batch.json、progress.json。',
         'usage 可能不完整；第三方费用以供应商账单为准。']
     path = directory / 'README.md'
     temporary = path.with_suffix('.md.tmp')

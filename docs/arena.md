@@ -34,6 +34,20 @@
   --private-dir /absolute/private/path batch model-a model-b model-c
 ```
 
+单角色多种子比赛可创建独立题号，例如亡灵契约师的九种子专项：
+
+```bash
+./sts2 arena --exam /absolute/path/necro-09/exam.json init \
+  --character Necrobinder --count 9 \
+  --exclude-exam /absolute/path/previous-exam/exam.json
+./sts2 arena --exam /absolute/path/necro-09/exam.json set-limits \
+  --unlimited --concurrency 2 --stop-on-technical-failure
+./sts2 arena --exam /absolute/path/necro-09/exam.json \
+  --private-dir /absolute/private/path batch model-a model-b
+```
+
+这会生成 `necrobinder-01` 至 `necrobinder-09` 九道正式题目。两个模型共用各题的种子，各自持有独立会话和检查点；总榜要求该模型九道题全部自然结束。`--exclude-exam` 可重复提供，以排除历史正式及练习种子。省略角色和数量仍生成原来的四角色考试。
+
 可接受的 oneliner 结构：`ANTHROPIC_BASE_URL=... ANTHROPIC_API_KEY=... claude --model ...`，也支持 `ANTHROPIC_AUTH_TOKEN`、`export A=...; ...; claude --model ...`、`--effort`。只接受明确的模型名和一个认证值。所有提供的模型别名必须指向同一个参赛模型。API key 保持 `x-api-key`，auth token 保持 Bearer，二者不会互相转换。拒绝管道、命令替换、任意脚本和附加 Claude 权限参数。
 
 每个模型与题目只能启动一次，目录已存在时拒绝覆盖。`--case all` 顺序运行四局，遇到未完成或故障就停下供检查。任何需要重测的技术事故都应明确记录，并使用新的考试目录；考场不会自动重开、恢复或补考。
