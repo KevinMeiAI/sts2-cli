@@ -52,7 +52,7 @@ def session_headers(existing, session_id):
     return '\n'.join(headers + ['X-Session-Id: ' + session_id])
 
 
-def run(manifest, game_root, private_dir, config, mode, case_id, executable, stop_event=None):
+def run(manifest, game_root, private_dir, config, mode, case_id, executable, stop_event=None, on_technical_failure=None):
     manifest, game_root = Path(manifest).resolve(), Path(game_root).resolve()
     exam = load_exam(manifest, game_root)
     version = claude_version(executable)
@@ -119,49 +119,68 @@ def run(manifest, game_root, private_dir, config, mode, case_id, executable, sto
     readers = []
     stopped = None
     terminal_since = None
+    def notify_failure(reason):
+        if on_technical_failure is not None:
+            on_technical_failure(reason)
+
     try:
-        proc = subprocess.Popen(command(executable, config, mcp_path), cwd=cwd, env=env,
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            text=True, bufsize=1, start_new_session=True)
-        metadata['claude_pid'] = proc.pid
-        atomic_json(directory / 'run.json', metadata)
-        for stream, filename, structured in [(proc.stdout, 'claude.jsonl', True), (proc.stderr, 'claude.stderr.log', False)]:
-            thread = threading.Thread(target=capture, args=(stream, directory / filename, structured), daemon=True)
-            thread.start()
-            readers.append(thread)
-        proc.stdin.write('Begin your assigned run now. Keep playing through every act until game_over.\n')
-        proc.stdin.close()
-        while proc.poll() is None:
-            if stop_event is not None and stop_event.is_set():
-                stopped = 'interrupted'
-                break
-            init = next((e for e in events if e.get('type') == 'system' and e.get('subtype') == 'init'), None)
-            if init and set(init.get('tools', [])) != set(TOOL_NAMES):
-                stopped = 'tool_isolation_failure'
-                break
-            current_path = directory / 'current.json'
-            if (directory / 'fault.json').exists():
-                stopped = 'technical_failure'
-                break
-            if current_path.exists():
-                current = load_json(current_path)
-                if current.get('fault'):
-                    stopped = 'technical_failure'
+        if stop_event is not None and stop_event.is_set():
+            stopped = 'interrupted'
+        else:
+            proc = subprocess.Popen(command(executable, config, mcp_path), cwd=cwd, env=env,
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                text=True, bufsize=1, start_new_session=True)
+        if proc is not None:
+            metadata['claude_pid'] = proc.pid
+            atomic_json(directory / 'run.json', metadata)
+            for stream, filename, structured in [(proc.stdout, 'claude.jsonl', True), (proc.stderr, 'claude.stderr.log', False)]:
+                thread = threading.Thread(target=capture, args=(stream, directory / filename, structured), daemon=True)
+                thread.start()
+                readers.append(thread)
+            proc.stdin.write('Begin your assigned run now. Keep playing through every act until game_over.\n')
+            proc.stdin.close()
+            while proc.poll() is None:
+                if stop_event is not None and stop_event.is_set():
+                    stopped = 'interrupted'
                     break
-                if current['score']['terminal']:
-                    terminal_since = terminal_since or time.monotonic()
-                    if time.monotonic() - terminal_since > 3:
-                        stopped = 'game_finished'
+                init = next((e for e in events if e.get('type') == 'system' and e.get('subtype') == 'init'), None)
+                if init and set(init.get('tools', [])) != set(TOOL_NAMES):
+                    stopped = 'tool_isolation_failure'
+                    notify_failure(stopped)
+                    break
+                if parsing_errors or any(b.get('name') not in TOOL_NAMES for e in events if e.get('type') == 'assistant' for b in e.get('message', {}).get('content', []) if b.get('type') == 'tool_use'):
+                    stopped = 'technical_failure'
+                    notify_failure('claude_protocol_failure')
+                    break
+                current_path = directory / 'current.json'
+                if (directory / 'fault.json').exists():
+                    stopped = 'technical_failure'
+                    notify_failure('engine_fault')
+                    break
+                if current_path.exists():
+                    current = load_json(current_path)
+                    if current.get('fault'):
+                        stopped = 'technical_failure'
+                        notify_failure('engine_fault')
                         break
-            if seconds is not None and time.monotonic() - started >= seconds:
-                stopped = 'time_limit'
-                break
-            time.sleep(.1)
+                    if current['score']['terminal']:
+                        terminal_since = terminal_since or time.monotonic()
+                        if time.monotonic() - terminal_since > 3:
+                            stopped = 'game_finished'
+                            break
+                if seconds is not None and time.monotonic() - started >= seconds:
+                    stopped = 'time_limit'
+                    break
+                if stop_event is None:
+                    time.sleep(.1)
+                else:
+                    stop_event.wait(.1)
     except KeyboardInterrupt:
         stopped = 'interrupted'
     except Exception as error:
         stopped = 'runner_error'
         metadata['error'] = redact(f'{type(error).__name__}: {error}', config)
+        notify_failure('runner_error')
     finally:
         if proc:
             # Also clean up MCP/game descendants after an early Claude exit.
@@ -174,13 +193,15 @@ def run(manifest, game_root, private_dir, config, mode, case_id, executable, sto
             except subprocess.TimeoutExpired:
                 os.killpg(proc.pid, signal.SIGKILL)
                 proc.wait(timeout=3)
-            for reader in readers:
-                reader.join(timeout=3)
+            # Close descendant pipes before joining readers; otherwise an orphan
+            # that ignores SIGTERM can hold shutdown up for each stream.
             # A child can ignore SIGTERM even when its parent has already exited.
             try:
                 os.killpg(proc.pid, signal.SIGKILL)
             except ProcessLookupError:
                 pass
+            for reader in readers:
+                reader.join(timeout=3)
             for stream in (proc.stdout, proc.stderr):
                 stream.close()
     current = load_json(directory / 'current.json') if (directory / 'current.json').exists() else None
@@ -188,7 +209,7 @@ def run(manifest, game_root, private_dir, config, mode, case_id, executable, sto
     result = next((e for e in reversed(events) if e.get('type') == 'result'), None)
     tools_ok = init is not None and set(init.get('tools', [])) == set(TOOL_NAMES)
     technical = stopped in ('technical_failure', 'runner_error', 'tool_isolation_failure') or (directory / 'fault.json').exists() or bool(current and current.get('fault'))
-    if technical or not tools_ok or parsing_errors:
+    if technical or parsing_errors or (init is not None and not tools_ok):
         status = 'technical_failure'
     elif current and current['score']['terminal']:
         status = 'completed'
@@ -196,6 +217,8 @@ def run(manifest, game_root, private_dir, config, mode, case_id, executable, sto
         status = 'time_limit'
     elif stopped == 'interrupted':
         status = 'interrupted'
+    elif not tools_ok:
+        status = 'technical_failure'
     elif (result and result.get('is_error')) or (proc and proc.returncode != 0):
         status = 'provider_error'
     else:
@@ -204,6 +227,8 @@ def run(manifest, game_root, private_dir, config, mode, case_id, executable, sto
              for b in e.get('message', {}).get('content', []) if b.get('type') == 'tool_use']
     if any(b.get('name') not in TOOL_NAMES for b in calls):
         status = 'technical_failure'
+    if status == 'technical_failure':
+        notify_failure(stopped or 'claude_protocol_failure')
     successful_actions = invalid_actions = 0
     if (directory / 'game.jsonl').exists():
         with open(directory / 'game.jsonl') as trace:

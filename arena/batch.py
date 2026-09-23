@@ -13,7 +13,26 @@ from .runner import claude_version, run, time_limit
 from .scoring import standings
 
 
-def schedule(jobs, execute, concurrency, observe, stop_event, interval=5):
+class FailureStop:
+    """Publish the first failure and signal all workers before any cleanup waits."""
+    def __init__(self, stop_event, path, enabled=True):
+        self.stop_event, self.path, self.enabled = stop_event, path, enabled
+        self.record = None
+        self.lock = threading.Lock()
+
+    def trip(self, key, reason):
+        if not self.enabled:
+            return
+        with self.lock:
+            if self.record is not None:
+                return
+            self.record = {'at': utc(), 'origin': key, 'reason': reason,
+                           'status': 'technical_failure', 'action': 'stop_all'}
+            self.stop_event.set()
+            atomic_json(self.path, self.record)
+
+
+def schedule(jobs, execute, concurrency, observe, stop_event, interval=5, stop_on_technical_failure=False):
     """Refill each model independently; a finished attempt is never resubmitted."""
     if type(concurrency) is not int or concurrency <= 0:
         raise ValueError('Concurrency must be a positive integer')
@@ -29,10 +48,12 @@ def schedule(jobs, execute, concurrency, observe, stop_event, interval=5):
                     if future.done():
                         job = futures.pop(future)
                         results[job['key']] = future.result()
+                        if stop_on_technical_failure and results[job['key']]['status'] == 'technical_failure':
+                            stop_event.set()
                 if not stop_event.is_set():
                     active = Counter(j['model_id'] for j in futures.values())
                     for model, queue in pending.items():
-                        while queue and active[model] < concurrency:
+                        while queue and active[model] < concurrency and not stop_event.is_set():
                             job = queue.popleft()
                             futures[pool.submit(execute, job)] = job
                             active[model] += 1
@@ -46,11 +67,11 @@ def schedule(jobs, execute, concurrency, observe, stop_event, interval=5):
     return results
 
 
-def snapshot(directory, jobs, results, active):
+def snapshot(directory, jobs, results, active, halted=False):
     rows = []
     for job in jobs:
         path = directory / 'runs/official' / job['model_id'] / job['case_id']
-        row = dict(job, status='starting' if job['key'] in active else 'queued')
+        row = dict(job, status='starting' if job['key'] in active else ('cancelled_before_start' if halted else 'queued'))
         if (path / 'run.json').exists():
             record = load_json(path / 'run.json')
             row.update(status=record['status'], started_at=record['started_at'],
@@ -77,7 +98,8 @@ def write_report(directory, plan, data):
         f"每模型最多 {plan['concurrency_per_model']} 局并发，单局{limit}，统一 effort=max。",
         '同一角色使用同一种子；所有比赛均在独立 Claude Code 会话中运行。',
         f"状态：{plan['status']}；已结束 {data['finished']}/{data['total']}；活跃 {data['active']}。",
-        f"更新时间：{data['updated_at']}", '',
+        f"更新时间：{data['updated_at']}",
+        '故障策略：任一 technical_failure 立即停止所有对局与排队。' if plan.get('stop_on_technical_failure') else '故障策略：各局独立记录。', '',
         '| 模型 | 角色 | 正式种子 | 状态 | 累计楼层 | 角色 HP | 敌人 HP |',
         '|---|---|---|---|---|---|---|']
     for row in data['jobs']:
@@ -127,10 +149,12 @@ def launch(manifest, game_root, private_dir, models, executable):
         'coordinator_pid': os.getpid(), 'models': [public_config(configs[m]) for m in models],
         'case_ids': [c['id'] for c in exam['cases']], 'cases': exam['cases'],
         'concurrency_per_model': concurrency, 'time_limit_seconds': seconds,
+        'stop_on_technical_failure': policy.get('stop_on_technical_failure', False),
         'exam_sha256': digest(manifest), 'policy_sha256': digest(manifest.parent / 'policy.json'),
         'prompt_sha256': digest(Path(__file__).with_name('prompt.txt')), 'claude_version': exam['claude_version']}
     atomic_json(manifest.parent / 'batch.json', plan)
     stop_event = threading.Event()
+    breaker = FailureStop(stop_event, manifest.parent / 'halt.json', plan['stop_on_technical_failure'])
     old_handlers = {}
     if threading.current_thread() is threading.main_thread():
         for sig in (signal.SIGINT, signal.SIGTERM):
@@ -138,8 +162,10 @@ def launch(manifest, game_root, private_dir, models, executable):
     def execute(job):
         config = configs[job['model_id']]
         try:
-            return run(manifest, game_root, private_dir, config, 'official', job['case_id'], executable, stop_event)
+            return run(manifest, game_root, private_dir, config, 'official', job['case_id'], executable, stop_event,
+                       lambda reason: breaker.trip(job['key'], reason))
         except Exception as error:
+            breaker.trip(job['key'], 'worker_exception')
             result = {'model_id': job['model_id'], 'case_id': job['case_id'], 'mode': 'official',
                       'status': 'technical_failure', 'score': None, 'ended_at': utc(),
                       'error': redact(f'{type(error).__name__}: {error}', config)}
@@ -150,15 +176,19 @@ def launch(manifest, game_root, private_dir, models, executable):
         for key in results.keys() - seen:
             print(json.dumps({'finished': key, 'status': results[key]['status'], 'at': utc()}), flush=True)
             seen.add(key)
-        data = snapshot(manifest.parent, jobs, results, active)
+        if breaker.record:
+            plan.update(status='halting_technical_failure', halt=breaker.record)
+            atomic_json(manifest.parent / 'batch.json', plan)
+        data = snapshot(manifest.parent, jobs, results, active, stop_event.is_set())
         write_report(manifest.parent, plan, data)
     try:
-        results = schedule(jobs, execute, concurrency, observe, stop_event)
-        plan.update(status='interrupted' if stop_event.is_set() else 'finished', ended_at=utc(),
+        results = schedule(jobs, execute, concurrency, observe, stop_event,
+                           stop_on_technical_failure=plan['stop_on_technical_failure'])
+        plan.update(status='halted_technical_failure' if breaker.record else ('interrupted' if stop_event.is_set() else 'finished'), ended_at=utc(),
                     completed_games=sum(r['status'] == 'completed' for r in results.values()),
                     ended_attempts=len(results), total_attempts=len(jobs))
         atomic_json(manifest.parent / 'batch.json', plan)
-        data = snapshot(manifest.parent, jobs, results, set())
+        data = snapshot(manifest.parent, jobs, results, set(), stop_event.is_set())
         write_report(manifest.parent, plan, data)
         atomic_json(manifest.parent / 'summary.json', {'batch': plan, **data})
         return {'status': plan['status'], 'completed_games': plan['completed_games'], 'attempts': len(jobs)}

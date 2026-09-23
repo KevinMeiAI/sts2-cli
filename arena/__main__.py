@@ -92,6 +92,7 @@ def main():
     duration.add_argument('--seconds', type=int)
     duration.add_argument('--unlimited', action='store_true')
     limits.add_argument('--concurrency', type=int, default=1, help='Maximum concurrent official games per model')
+    limits.add_argument('--stop-on-technical-failure', action='store_true', help='Stop the entire batch immediately on any technical failure')
     batch = sub.add_parser('batch', help='Run all official cases with a separate queue per model')
     batch.add_argument('model_ids', nargs='+')
     for name in ('pilot', 'run'):
@@ -125,7 +126,8 @@ def main():
                 raise ValueError('Official attempts already exist; policy is locked')
             policy = load_json(args.exam.parent / 'policy.json')
             policy.update(official_seconds=args.seconds, official_unlimited=args.unlimited,
-                          concurrency_per_model=args.concurrency)
+                          concurrency_per_model=args.concurrency,
+                          stop_on_technical_failure=args.stop_on_technical_failure)
             atomic_json(args.exam.parent / 'policy.json', policy)
             result = policy
             report(args.exam)
